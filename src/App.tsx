@@ -57,24 +57,24 @@ function App() {
 
       {currentUser.role === 'admin' ? (
         <nav className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-2xl border-b-4 border-amber-500">
-          <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-amber-500 p-3 rounded-xl shadow-lg">
-                  <Shield className="w-8 h-8 text-slate-900" />
+              <div className="flex items-center gap-3">
+                <div className="bg-amber-500 p-2 sm:p-3 rounded-xl shadow-lg">
+                  <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-slate-900" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-black text-white tracking-tight">
-                    Admin Control Center
+                  <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight">
+                    Admin Control
                   </h1>
-                  <p className="text-slate-400 text-sm font-medium">
+                  <p className="text-slate-400 text-xs sm:text-sm font-medium hidden sm:block">
                     System Management Portal
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-6">
-                <div className="hidden md:flex items-center gap-6 px-6 py-2 bg-slate-800/50 rounded-xl border border-slate-700">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="hidden md:flex items-center gap-4 lg:gap-6 px-4 lg:px-6 py-2 bg-slate-800/50 rounded-xl border border-slate-700">
                   {adminTabs.map(tab => {
                     const Icon = tab.icon;
                     return (
@@ -94,33 +94,78 @@ function App() {
                   })}
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
+                <div className="hidden md:flex items-center gap-3 lg:gap-4">
+                  <div className="text-right hidden lg:block">
                     <p className="text-sm font-bold text-white">{currentUser.fullName}</p>
                     <p className="text-xs text-amber-400 font-semibold">Administrator</p>
                   </div>
                   <button
                     onClick={logout}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all hover:scale-105 hover:shadow-xl shadow-lg"
+                    className="flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all hover:scale-105 hover:shadow-xl shadow-lg"
                   >
                     <LogOut className="w-5 h-5" />
-                    <span className="hidden sm:inline">Logout</span>
+                    <span className="hidden lg:inline">Logout</span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="md:hidden p-2 text-white bg-slate-800/50 rounded-lg"
+                >
+                  {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+              </div>
+            </div>
+
+            {mobileMenuOpen && (
+              <div className="md:hidden mt-4 space-y-2 pb-4">
+                {adminTabs.map(tab => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id as Tab);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                        activeTab === tab.id
+                          ? 'bg-amber-500 text-slate-900'
+                          : 'text-white bg-slate-800/50 hover:bg-slate-700/50'
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+                <div className="pt-2 border-t border-slate-700">
+                  <div className="px-4 py-2 text-white">
+                    <p className="text-sm font-bold">{currentUser.fullName}</p>
+                    <p className="text-xs text-amber-400 font-semibold">Administrator</p>
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-red-600 hover:bg-red-700 rounded-xl text-white font-bold transition-all"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Logout
                   </button>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </nav>
       ) : (
         <nav className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-2xl sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-20">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between py-4">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="bg-white/20 backdrop-blur-xl p-2 rounded-xl">
-                  <Trophy className="w-8 h-8 text-yellow-300" />
+                  <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-300" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-black text-white">Office Quest</h1>
+                  <h1 className="text-lg sm:text-2xl font-black text-white">Office Quest</h1>
                   <p className="text-xs text-white/80 font-semibold">Level {currentUser.level} • {currentUser.points} pts</p>
                 </div>
               </div>
@@ -145,23 +190,23 @@ function App() {
                 })}
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="hidden md:block text-right">
-                  <p className="text-white font-bold">{currentUser.fullName}</p>
-                  <p className="text-white/80 text-sm capitalize">{currentUser.role}</p>
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="hidden lg:block text-right">
+                  <p className="text-white font-bold text-sm">{currentUser.fullName}</p>
+                  <p className="text-white/80 text-xs capitalize">{currentUser.role}</p>
                 </div>
 
                 <button
                   onClick={logout}
-                  className="hidden md:flex items-center gap-2 px-4 py-3 bg-white/20 hover:bg-white/30 rounded-xl text-white font-bold transition-all hover:scale-105"
+                  className="hidden md:flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-white/20 hover:bg-white/30 rounded-xl text-white font-bold transition-all hover:scale-105"
                 >
-                  <LogOut className="w-5 h-5" />
+                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span className="hidden lg:inline">Logout</span>
                 </button>
 
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="md:hidden p-2 text-white"
+                  className="md:hidden p-2 text-white bg-white/10 rounded-lg"
                 >
                   {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                 </button>
