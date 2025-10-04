@@ -66,16 +66,54 @@ export const mockRewards: Reward[] = [
     title: 'Extra Day Off',
     description: 'Enjoy an additional vacation day',
     pointsCost: 500,
-    category: 'time-off',
-    imageUrl: 'https://images.pexels.com/photos/1285625/pexels-photo-1285625.jpeg'
+    category: 'time_off',
+    imageUrl: 'https://images.pexels.com/photos/1285625/pexels-photo-1285625.jpeg',
+    stockQuantity: 10
   },
   {
     id: '2',
-    title: 'Coffee Shop Gift Card',
-    description: '$25 gift card to your favorite coffee shop',
+    title: 'Premium Parking Spot',
+    description: 'Reserved parking spot for one month',
+    pointsCost: 300,
+    category: 'perks',
+    imageUrl: 'https://images.pexels.com/photos/753876/pexels-photo-753876.jpeg',
+    stockQuantity: 5
+  },
+  {
+    id: '3',
+    title: 'Company Hoodie',
+    description: 'Premium branded hoodie in your size',
+    pointsCost: 250,
+    category: 'swag',
+    imageUrl: 'https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg',
+    stockQuantity: 20
+  },
+  {
+    id: '4',
+    title: 'Team Lunch',
+    description: 'Catered lunch for your entire team',
+    pointsCost: 400,
+    category: 'experiences',
+    imageUrl: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg',
+    stockQuantity: 8
+  },
+  {
+    id: '5',
+    title: 'Half Day Off',
+    description: 'Leave early or come in late',
+    pointsCost: 250,
+    category: 'time_off',
+    imageUrl: 'https://images.pexels.com/photos/1416530/pexels-photo-1416530.jpeg',
+    stockQuantity: 15
+  },
+  {
+    id: '6',
+    title: 'Coffee Subscription',
+    description: 'One month premium coffee delivery',
     pointsCost: 200,
-    category: 'gift-card',
-    imageUrl: 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg'
+    category: 'perks',
+    imageUrl: 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg',
+    stockQuantity: 12
   }
 ];
 
