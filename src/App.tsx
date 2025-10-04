@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from './context/AppContext';
 import LoginScreen from './components/LoginScreen';
 import EmployeeDashboard from './components/EmployeeDashboard';
@@ -29,6 +29,12 @@ function App() {
   const defaultTab = currentUser?.role === 'admin' ? 'employees' : 'dashboard';
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      setActiveTab(currentUser.role === 'admin' ? 'employees' : 'dashboard');
+    }
+  }, [currentUser]);
 
   if (!currentUser) {
     return <LoginScreen />;
