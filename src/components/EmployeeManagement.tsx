@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Users, Gift, Trash2, X, Trophy, TrendingUp } from 'lucide-react';
+import { Users, Gift, Trash2, X, Trophy, TrendingUp, Minus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function EmployeeManagement() {
   const { users, awardPoints, deleteEmployee, userAchievements, transactions } = useApp();
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
   const [showAwardModal, setShowAwardModal] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [pointAmount, setPointAmount] = useState('');
   const [pointDescription, setPointDescription] = useState('');
@@ -21,6 +22,17 @@ export default function EmployeeManagement() {
       setPointAmount('');
       setPointDescription('');
       setShowAwardModal(false);
+      setSelectedEmployee(null);
+    }
+  };
+
+  const handleRemovePoints = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedEmployee && pointAmount && pointDescription) {
+      awardPoints(selectedEmployee, -parseInt(pointAmount), pointDescription);
+      setPointAmount('');
+      setPointDescription('');
+      setShowRemoveModal(false);
       setSelectedEmployee(null);
     }
   };
@@ -45,6 +57,11 @@ export default function EmployeeManagement() {
   const openAwardModal = (userId: string) => {
     setSelectedEmployee(userId);
     setShowAwardModal(true);
+  };
+
+  const openRemoveModal = (userId: string) => {
+    setSelectedEmployee(userId);
+    setShowRemoveModal(true);
   };
 
   const getUserAchievementCount = (userId: string) => {
@@ -141,14 +158,21 @@ export default function EmployeeManagement() {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => openAwardModal(employee.id)}
-                        className="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition-all hover:scale-105"
+                        className="inline-flex items-center gap-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold transition-all hover:scale-105"
                       >
                         <Gift className="w-4 h-4" />
                         Award
                       </button>
                       <button
+                        onClick={() => openRemoveModal(employee.id)}
+                        className="inline-flex items-center gap-1 px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold transition-all hover:scale-105"
+                      >
+                        <Minus className="w-4 h-4" />
+                        Remove
+                      </button>
+                      <button
                         onClick={() => handleDeleteClick(employee.id)}
-                        className="inline-flex items-center gap-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-all hover:scale-105"
+                        className="inline-flex items-center gap-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-all hover:scale-105"
                       >
                         <Trash2 className="w-4 h-4" />
                         Delete
@@ -246,6 +270,92 @@ export default function EmployeeManagement() {
                   className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all"
                 >
                   Award Points
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showRemoveModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <div className="bg-orange-100 p-3 rounded-xl">
+                  <Minus className="w-6 h-6 text-orange-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800">Remove Points</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setShowRemoveModal(false);
+                  setSelectedEmployee(null);
+                  setPointAmount('');
+                  setPointDescription('');
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {selectedUser && (
+              <div className="mb-6 p-4 bg-orange-50 rounded-xl border border-orange-200">
+                <p className="text-sm text-gray-600 mb-1">Removing points from:</p>
+                <p className="text-lg font-bold text-gray-900">{selectedUser.fullName}</p>
+                <p className="text-sm text-gray-600">Current: {selectedUser.points} pts</p>
+              </div>
+            )}
+
+            <form onSubmit={handleRemovePoints} className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Points Amount
+                </label>
+                <input
+                  type="number"
+                  value={pointAmount}
+                  onChange={(e) => setPointAmount(e.target.value)}
+                  placeholder="Enter points to remove (e.g., 50)"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 outline-none transition-all"
+                  min="1"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Reason
+                </label>
+                <input
+                  type="text"
+                  value={pointDescription}
+                  onChange={(e) => setPointDescription(e.target.value)}
+                  placeholder="Why are points being removed?"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 outline-none transition-all"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowRemoveModal(false);
+                    setSelectedEmployee(null);
+                    setPointAmount('');
+                    setPointDescription('');
+                  }}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all"
+                >
+                  Remove Points
                 </button>
               </div>
             </form>
