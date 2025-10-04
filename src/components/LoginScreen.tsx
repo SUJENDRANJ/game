@@ -5,17 +5,46 @@ import { mockUsers } from '../data/mockData';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
-  const { login } = useApp();
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login, signup } = useApp();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      login(email);
+    setError('');
+    setLoading(true);
+
+    try {
+      if (isSignUp) {
+        if (!fullName) {
+          setError('Please enter your full name');
+          setLoading(false);
+          return;
+        }
+        await signup(email, password, fullName);
+      } else {
+        await login(email, password);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const quickLogin = (userEmail: string) => {
-    login(userEmail);
+  const quickLogin = async (userEmail: string, userPassword: string) => {
+    setError('');
+    setLoading(true);
+    try {
+      await login(userEmail, userPassword);
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,6 +68,29 @@ export default function LoginScreen() {
 
         <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-500/20 border border-red-500/50 text-white px-4 py-3 rounded-xl">
+                {error}
+              </div>
+            )}
+
+            {isSignUp && (
+              <div>
+                <label htmlFor="fullName" className="block text-sm font-bold text-white mb-2">
+                  Full Name
+                </label>
+                <input
+                  id="fullName"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full px-4 py-3 rounded-xl bg-white/90 border-2 border-transparent focus:border-white focus:bg-white outline-none transition-all text-gray-900 placeholder-gray-400"
+                  required
+                />
+              </div>
+            )}
+
             <div>
               <label htmlFor="email" className="block text-sm font-bold text-white mb-2">
                 Email Address
@@ -54,12 +106,39 @@ export default function LoginScreen() {
               />
             </div>
 
+            <div>
+              <label htmlFor="password" className="block text-sm font-bold text-white mb-2">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-xl bg-white/90 border-2 border-transparent focus:border-white focus:bg-white outline-none transition-all text-gray-900 placeholder-gray-400"
+                required
+              />
+            </div>
+
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold py-4 rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold py-4 rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <LogIn className="w-5 h-5" />
-              Enter Office Quest
+              {loading ? 'Please wait...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+              }}
+              className="w-full text-white/90 text-sm font-semibold hover:text-white transition-colors"
+            >
+              {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up'}
             </button>
           </form>
 
@@ -79,15 +158,17 @@ export default function LoginScreen() {
               {mockUsers.filter(u => u.role === 'employee').slice(0, 2).map(user => (
                 <button
                   key={user.id}
-                  onClick={() => quickLogin(user.email)}
-                  className="w-full px-4 py-3 bg-white/20 hover:bg-white/30 rounded-xl text-white font-medium transition-all hover:scale-105 border border-white/20"
+                  onClick={() => quickLogin(user.email, 'demo123')}
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-white/20 hover:bg-white/30 rounded-xl text-white font-medium transition-all hover:scale-105 border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {user.fullName} ({user.role})
+                  {user.fullName} (employee)
                 </button>
               ))}
               <button
-                onClick={() => quickLogin(mockUsers.find(u => u.role === 'admin')!.email)}
-                className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white font-bold transition-all hover:scale-105 border border-white/20"
+                onClick={() => quickLogin('admin@gmail.com', 'admin@123')}
+                disabled={loading}
+                className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white font-bold transition-all hover:scale-105 border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Admin Login
               </button>

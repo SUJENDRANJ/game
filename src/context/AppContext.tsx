@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User, Achievement, Reward, PointTransaction, OfficeRule, UserAchievement, RewardRedemption } from '../types';
 import { mockUsers, mockAchievements, mockRewards, mockOfficeRules, mockUserAchievements } from '../data/mockData';
+import { supabase } from '../lib/supabase';
 
 interface AppContextType {
   currentUser: User | null;
@@ -11,7 +12,8 @@ interface AppContextType {
   redemptions: RewardRedemption[];
   transactions: PointTransaction[];
   officeRules: OfficeRule[];
-  login: (email: string) => void;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, fullName: string) => Promise<void>;
   logout: () => void;
   awardPoints: (userId: string, amount: number, description: string) => void;
   awardAchievement: (userId: string, achievementId: string) => void;
@@ -25,11 +27,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('currentUser');
-    return saved ? JSON.parse(saved) : null;
-  });
-
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [achievements] = useState<Achievement[]>(mockAchievements);
   const [userAchievements, setUserAchievements] = useState<UserAchievement[]>(mockUserAchievements);
@@ -41,27 +39,151 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [celebrationMessage, setCelebrationMessage] = useState('');
 
   useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const userEmail = session.user.email!;
+
+        const mockUser = mockUsers.find(u => u.email === userEmail);
+        if (mockUser) {
+          setCurrentUser(mockUser);
+        } else {
+          const newUser: User = {
+            id: session.user.id,
+            email: userEmail,
+            fullName: session.user.user_metadata?.full_name || userEmail.split('@')[0],
+            role: userEmail === 'admin@gmail.com' ? 'admin' : 'employee',
+            points: 0,
+            totalPointsEarned: 0,
+            level: 1,
+            streakDays: 0
+          };
+          setCurrentUser(newUser);
+          setUsers(prev => [...prev, newUser]);
+        }
+      }
+    };
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      (async () => {
+        if (session?.user) {
+          const userEmail = session.user.email!;
+
+          const mockUser = mockUsers.find(u => u.email === userEmail);
+          if (mockUser) {
+            setCurrentUser(mockUser);
+          } else {
+            const existingUser = users.find(u => u.email === userEmail);
+            if (existingUser) {
+              setCurrentUser(existingUser);
+            } else {
+              const newUser: User = {
+                id: session.user.id,
+                email: userEmail,
+                fullName: session.user.user_metadata?.full_name || userEmail.split('@')[0],
+                role: userEmail === 'admin@gmail.com' ? 'admin' : 'employee',
+                points: 0,
+                totalPointsEarned: 0,
+                level: 1,
+                streakDays: 0
+              };
+              setCurrentUser(newUser);
+              setUsers(prev => [...prev, newUser]);
+            }
+          }
+        } else {
+          setCurrentUser(null);
+        }
+      })();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
     if (currentUser) {
-      localStorage.setItem('currentUser', JSON.stringify(currentUser));
       const updatedUser = users.find(u => u.id === currentUser.id);
       if (updatedUser) {
         setCurrentUser(updatedUser);
-        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
       }
     }
-  }, [users, currentUser]);
+  }, [users]);
 
-  const login = (email: string) => {
-    const user = users.find(u => u.email === email);
-    if (user) {
-      setCurrentUser(user);
-      localStorage.setItem('currentUser', JSON.stringify(user));
+  const login = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if (data.user) {
+      const mockUser = mockUsers.find(u => u.email === email);
+      if (mockUser) {
+        setCurrentUser(mockUser);
+      } else {
+        const existingUser = users.find(u => u.email === email);
+        if (existingUser) {
+          setCurrentUser(existingUser);
+        } else {
+          const newUser: User = {
+            id: data.user.id,
+            email: data.user.email!,
+            fullName: data.user.user_metadata?.full_name || email.split('@')[0],
+            role: email === 'admin@gmail.com' ? 'admin' : 'employee',
+            points: 0,
+            totalPointsEarned: 0,
+            level: 1,
+            streakDays: 0
+          };
+          setCurrentUser(newUser);
+          setUsers(prev => [...prev, newUser]);
+        }
+      }
     }
   };
 
-  const logout = () => {
+  const signup = async (email: string, password: string, fullName: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName
+        },
+        emailRedirectTo: undefined
+      }
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if (data.user) {
+      const newUser: User = {
+        id: data.user.id,
+        email: data.user.email!,
+        fullName,
+        role: email === 'admin@gmail.com' ? 'admin' : 'employee',
+        points: 0,
+        totalPointsEarned: 0,
+        level: 1,
+        streakDays: 0
+      };
+      setCurrentUser(newUser);
+      setUsers(prev => [...prev, newUser]);
+    }
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setCurrentUser(null);
-    localStorage.removeItem('currentUser');
   };
 
   const triggerCelebration = (message: string) => {
@@ -154,7 +276,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTransactions(prev => [newTransaction, ...prev]);
 
     if (userId === currentUser?.id) {
-      triggerCelebration(`🎁 ${reward.title} redeemed!`);
+      triggerCelebration(`Reward redeemed: ${reward.title}`);
     }
   };
 
@@ -184,6 +306,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       transactions,
       officeRules,
       login,
+      signup,
       logout,
       awardPoints,
       awardAchievement,
