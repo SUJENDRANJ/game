@@ -19,6 +19,7 @@ interface AppContextType {
   awardAchievement: (userId: string, achievementId: string) => void;
   redeemReward: (userId: string, rewardId: string) => void;
   updateRedemptionStatus: (redemptionId: string, status: RewardRedemption['status'], notes?: string) => void;
+  deleteEmployee: (userId: string) => Promise<void>;
   showCelebration: boolean;
   celebrationMessage: string;
   triggerCelebration: (message: string) => void;
@@ -48,18 +49,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (mockUser) {
           setCurrentUser(mockUser);
         } else {
-          const newUser: User = {
-            id: session.user.id,
-            email: userEmail,
-            fullName: session.user.user_metadata?.full_name || userEmail.split('@')[0],
-            role: userEmail === 'admin@gmail.com' ? 'admin' : 'employee',
-            points: 0,
-            totalPointsEarned: 0,
-            level: 1,
-            streakDays: 0
-          };
-          setCurrentUser(newUser);
-          setUsers(prev => [...prev, newUser]);
+          setUsers(prev => {
+            const existingUser = prev.find(u => u.email === userEmail);
+            if (existingUser) {
+              setCurrentUser(existingUser);
+              return prev;
+            }
+            const newUser: User = {
+              id: session.user.id,
+              email: userEmail,
+              fullName: session.user.user_metadata?.full_name || userEmail.split('@')[0],
+              role: userEmail === 'admin@gmail.com' ? 'admin' : 'employee',
+              points: 0,
+              totalPointsEarned: 0,
+              level: 1,
+              streakDays: 0
+            };
+            setCurrentUser(newUser);
+            return [...prev, newUser];
+          });
         }
       }
     };
@@ -75,10 +83,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (mockUser) {
             setCurrentUser(mockUser);
           } else {
-            const existingUser = users.find(u => u.email === userEmail);
-            if (existingUser) {
-              setCurrentUser(existingUser);
-            } else {
+            setUsers(prev => {
+              const existingUser = prev.find(u => u.email === userEmail);
+              if (existingUser) {
+                setCurrentUser(existingUser);
+                return prev;
+              }
               const newUser: User = {
                 id: session.user.id,
                 email: userEmail,
@@ -90,8 +100,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 streakDays: 0
               };
               setCurrentUser(newUser);
-              setUsers(prev => [...prev, newUser]);
-            }
+              return [...prev, newUser];
+            });
           }
         } else {
           setCurrentUser(null);
@@ -295,6 +305,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const deleteEmployee = async (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    if (mockUsers.find(u => u.id === userId)) {
+      throw new Error('Cannot delete demo users');
+    }
+
+    setUsers(prev => prev.filter(u => u.id !== userId));
+    setUserAchievements(prev => prev.filter(ua => ua.userId !== userId));
+    setRedemptions(prev => prev.filter(r => r.userId !== userId));
+    setTransactions(prev => prev.filter(t => t.userId !== userId));
+
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting user from auth:', error);
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       currentUser,
@@ -312,6 +343,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       awardAchievement,
       redeemReward,
       updateRedemptionStatus,
+      deleteEmployee,
       showCelebration,
       celebrationMessage,
       triggerCelebration

@@ -1,4 +1,4 @@
-import { Shield, LogOut, Award, Users, Gift, BarChart3 } from 'lucide-react';
+import { Shield, LogOut, Users, Trophy, BarChart3 } from 'lucide-react';
 
 interface AdminNavbarProps {
   adminName: string;
@@ -31,12 +31,8 @@ export default function AdminNavbar({ adminName, onLogout }: AdminNavbarProps) {
                 <span className="text-sm font-semibold">Employees</span>
               </div>
               <div className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors cursor-pointer">
-                <Award className="w-5 h-5" />
-                <span className="text-sm font-semibold">Achievements</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors cursor-pointer">
-                <Gift className="w-5 h-5" />
-                <span className="text-sm font-semibold">Rewards</span>
+                <Trophy className="w-5 h-5" />
+                <span className="text-sm font-semibold">Leaderboard</span>
               </div>
               <div className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors cursor-pointer">
                 <BarChart3 className="w-5 h-5" />
