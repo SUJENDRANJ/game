@@ -26,14 +26,13 @@ type Tab = 'dashboard' | 'leaderboard' | 'rewards' | 'achievements' | 'admin' | 
 
 function App() {
   const { currentUser, logout, showCelebration, celebrationMessage } = useApp();
+  const defaultTab = currentUser?.role === 'admin' ? 'employees' : 'dashboard';
+  const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   if (!currentUser) {
     return <LoginScreen />;
   }
-
-  const defaultTab = currentUser.role === 'admin' ? 'employees' : 'dashboard';
-  const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, forRole: ['employee', 'admin'] },
