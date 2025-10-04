@@ -30,9 +30,9 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>(mockUsers);
-  const [achievements] = useState<Achievement[]>(mockAchievements);
-  const [userAchievements, setUserAchievements] = useState<UserAchievement[]>(mockUserAchievements);
-  const [rewards] = useState<Reward[]>(mockRewards);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [userAchievements, setUserAchievements] = useState<UserAchievement[]>([]);
+  const [rewards, setRewards] = useState<Reward[]>([]);
   const [redemptions, setRedemptions] = useState<RewardRedemption[]>([]);
   const [transactions, setTransactions] = useState<PointTransaction[]>([]);
   const [officeRules] = useState<OfficeRule[]>(mockOfficeRules);
@@ -131,6 +131,146 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [users]);
+
+  useEffect(() => {
+    const fetchAchievements = async () => {
+      const { data, error } = await supabase
+        .from('achievements')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setAchievements(data.map(a => ({
+          id: a.id,
+          title: a.title,
+          description: a.description,
+          icon: a.icon,
+          pointsReward: a.points_reward,
+          category: a.category,
+          rarity: a.rarity
+        })));
+      }
+    };
+
+    fetchAchievements();
+
+    const achievementsChannel = supabase
+      .channel('achievements-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'achievements' }, () => {
+        fetchAchievements();
+      })
+      .subscribe();
+
+    return () => {
+      achievementsChannel.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchRewards = async () => {
+      const { data, error } = await supabase
+        .from('rewards')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setRewards(data.map(r => ({
+          id: r.id,
+          title: r.title,
+          description: r.description,
+          pointsCost: r.points_cost,
+          category: r.category,
+          imageUrl: r.image_url,
+          stockQuantity: r.stock_quantity
+        })));
+      }
+    };
+
+    fetchRewards();
+
+    const rewardsChannel = supabase
+      .channel('rewards-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rewards' }, () => {
+        fetchRewards();
+      })
+      .subscribe();
+
+    return () => {
+      rewardsChannel.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const fetchUserAchievements = async () => {
+      const { data, error } = await supabase
+        .from('user_achievements')
+        .select('*');
+
+      if (!error && data) {
+        setUserAchievements(data.map(ua => ({
+          id: ua.id,
+          userId: ua.user_id,
+          achievementId: ua.achievement_id,
+          unlockedAt: new Date(ua.unlocked_at),
+          awardedBy: ua.awarded_by
+        })));
+      }
+    };
+
+    fetchUserAchievements();
+
+    const userAchievementsChannel = supabase
+      .channel('user-achievements-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_achievements' }, () => {
+        fetchUserAchievements();
+      })
+      .subscribe();
+
+    return () => {
+      userAchievementsChannel.unsubscribe();
+    };
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const fetchRedemptions = async () => {
+      const { data, error } = await supabase
+        .from('reward_redemptions')
+        .select('*')
+        .order('redeemed_at', { ascending: false });
+
+      if (!error && data) {
+        setRedemptions(data.map(r => ({
+          id: r.id,
+          userId: r.user_id,
+          rewardId: r.reward_id,
+          pointsSpent: r.points_spent,
+          status: r.status,
+          redeemedAt: new Date(r.redeemed_at),
+          fulfilledAt: r.fulfilled_at ? new Date(r.fulfilled_at) : undefined,
+          fulfilledBy: r.fulfilled_by,
+          notes: r.notes
+        })));
+      }
+    };
+
+    fetchRedemptions();
+
+    const redemptionsChannel = supabase
+      .channel('redemptions-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reward_redemptions' }, () => {
+        fetchRedemptions();
+      })
+      .subscribe();
+
+    return () => {
+      redemptionsChannel.unsubscribe();
+    };
+  }, [currentUser]);
 
   const login = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -245,7 +385,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const awardAchievement = (userId: string, achievementId: string) => {
+  const awardAchievement = async (userId: string, achievementId: string) => {
     const achievement = achievements.find(a => a.id === achievementId);
     if (!achievement) return;
 
@@ -254,69 +394,68 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
     if (alreadyUnlocked) return;
 
-    const newUserAchievement: UserAchievement = {
-      id: Date.now().toString(),
-      userId,
-      achievementId,
-      unlockedAt: new Date(),
-      awardedBy: currentUser?.id
-    };
-    setUserAchievements(prev => [...prev, newUserAchievement]);
+    const { error } = await supabase
+      .from('user_achievements')
+      .insert({
+        user_id: userId,
+        achievement_id: achievementId,
+        awarded_by: currentUser?.id
+      });
 
-    awardPoints(userId, achievement.pointsReward, `Achievement unlocked: ${achievement.title}`);
+    if (!error) {
+      awardPoints(userId, achievement.pointsReward, `Achievement unlocked: ${achievement.title}`);
+    }
   };
 
-  const redeemReward = (userId: string, rewardId: string) => {
+  const redeemReward = async (userId: string, rewardId: string) => {
     const reward = rewards.find(r => r.id === rewardId);
     const user = users.find(u => u.id === userId);
 
     if (!reward || !user || user.points < reward.pointsCost) return;
 
-    setUsers(prev => prev.map(u => {
-      if (u.id === userId) {
-        return { ...u, points: u.points - reward.pointsCost };
+    const { error } = await supabase
+      .from('reward_redemptions')
+      .insert({
+        user_id: userId,
+        reward_id: rewardId,
+        points_spent: reward.pointsCost,
+        status: 'pending'
+      });
+
+    if (!error) {
+      setUsers(prev => prev.map(u => {
+        if (u.id === userId) {
+          return { ...u, points: u.points - reward.pointsCost };
+        }
+        return u;
+      }));
+
+      const newTransaction: PointTransaction = {
+        id: (Date.now() + 1).toString(),
+        userId,
+        amount: -reward.pointsCost,
+        type: 'redemption',
+        description: `Redeemed: ${reward.title}`,
+        createdAt: new Date()
+      };
+      setTransactions(prev => [newTransaction, ...prev]);
+
+      if (userId === currentUser?.id) {
+        triggerCelebration(`Reward redeemed: ${reward.title}`);
       }
-      return u;
-    }));
-
-    const newRedemption: RewardRedemption = {
-      id: Date.now().toString(),
-      userId,
-      rewardId,
-      pointsSpent: reward.pointsCost,
-      status: 'pending',
-      redeemedAt: new Date()
-    };
-    setRedemptions(prev => [newRedemption, ...prev]);
-
-    const newTransaction: PointTransaction = {
-      id: (Date.now() + 1).toString(),
-      userId,
-      amount: -reward.pointsCost,
-      type: 'redemption',
-      description: `Redeemed: ${reward.title}`,
-      createdAt: new Date()
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
-
-    if (userId === currentUser?.id) {
-      triggerCelebration(`Reward redeemed: ${reward.title}`);
     }
   };
 
-  const updateRedemptionStatus = (redemptionId: string, status: RewardRedemption['status'], notes?: string) => {
-    setRedemptions(prev => prev.map(r => {
-      if (r.id === redemptionId) {
-        return {
-          ...r,
-          status,
-          notes,
-          fulfilledAt: status === 'fulfilled' ? new Date() : r.fulfilledAt,
-          fulfilledBy: status === 'fulfilled' ? currentUser?.id : r.fulfilledBy
-        };
-      }
-      return r;
-    }));
+  const updateRedemptionStatus = async (redemptionId: string, status: RewardRedemption['status'], notes?: string) => {
+    await supabase
+      .from('reward_redemptions')
+      .update({
+        status,
+        notes,
+        fulfilled_at: status === 'fulfilled' ? new Date().toISOString() : undefined,
+        fulfilled_by: status === 'fulfilled' ? currentUser?.id : undefined
+      })
+      .eq('id', redemptionId);
   };
 
   const deleteEmployee = async (userId: string) => {

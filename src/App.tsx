@@ -9,6 +9,8 @@ import AdminPanel from './components/AdminPanel';
 import EmployeeManagement from './components/EmployeeManagement';
 import AdminNavbar from './components/AdminNavbar';
 import CelebrationOverlay from './components/CelebrationOverlay';
+import AchievementsManager from './components/AchievementsManager';
+import RewardsManager from './components/RewardsManager';
 import {
   LayoutDashboard,
   Trophy,
@@ -19,10 +21,11 @@ import {
   Menu,
   X,
   Users,
-  BarChart3
+  BarChart3,
+  Gift
 } from 'lucide-react';
 
-type Tab = 'dashboard' | 'leaderboard' | 'rewards' | 'achievements' | 'admin' | 'employees' | 'analytics';
+type Tab = 'dashboard' | 'leaderboard' | 'rewards' | 'achievements' | 'admin' | 'employees' | 'analytics' | 'manage-achievements' | 'manage-rewards';
 
 function App() {
   const { currentUser, logout, showCelebration, celebrationMessage } = useApp();
@@ -53,6 +56,8 @@ function App() {
   const adminTabs = [
     { id: 'admin', label: 'Control Panel', icon: Shield },
     { id: 'employees', label: 'Employees', icon: Users },
+    { id: 'manage-achievements', label: 'Achievements', icon: Award },
+    { id: 'manage-rewards', label: 'Rewards', icon: Gift },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   ] as const;
@@ -261,6 +266,8 @@ function App() {
         {activeTab === 'rewards' && <RewardsMarketplace />}
         {activeTab === 'admin' && currentUser.role === 'admin' && <AdminPanel />}
         {activeTab === 'employees' && currentUser.role === 'admin' && <EmployeeManagement />}
+        {activeTab === 'manage-achievements' && currentUser.role === 'admin' && <AchievementsManager />}
+        {activeTab === 'manage-rewards' && currentUser.role === 'admin' && <RewardsManager />}
         {activeTab === 'analytics' && currentUser.role === 'admin' && (
           <div className="bg-white rounded-2xl p-8 shadow-xl text-center">
             <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
