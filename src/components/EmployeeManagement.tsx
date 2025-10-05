@@ -1,26 +1,37 @@
-import { useState } from 'react';
-import { Users, Gift, Trash2, X, Trophy, TrendingUp, Minus } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useState } from "react";
+import {
+  Users,
+  Gift,
+  Trash2,
+  X,
+  Trophy,
+  TrendingUp,
+  Minus,
+} from "lucide-react";
+import { useApp } from "../context/AppContext";
 
 export default function EmployeeManagement() {
-  const { users, awardPoints, deleteEmployee, userAchievements, transactions } = useApp();
+  const { users, awardPoints, deleteEmployee, userAchievements, transactions } =
+    useApp();
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
   const [showAwardModal, setShowAwardModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [pointAmount, setPointAmount] = useState('');
-  const [pointDescription, setPointDescription] = useState('');
+  const [pointAmount, setPointAmount] = useState("");
+  const [pointDescription, setPointDescription] = useState("");
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
 
-  const employees = users.filter(u => u.role === 'employee');
-  const selectedUser = selectedEmployee ? users.find(u => u.id === selectedEmployee) : null;
+  const employees = users.filter((u) => u.role === "employee");
+  const selectedUser = selectedEmployee
+    ? users.find((u) => u.id === selectedEmployee)
+    : null;
 
   const handleAwardPoints = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedEmployee && pointAmount && pointDescription) {
       awardPoints(selectedEmployee, parseInt(pointAmount), pointDescription);
-      setPointAmount('');
-      setPointDescription('');
+      setPointAmount("");
+      setPointDescription("");
       setShowAwardModal(false);
       setSelectedEmployee(null);
     }
@@ -30,8 +41,8 @@ export default function EmployeeManagement() {
     e.preventDefault();
     if (selectedEmployee && pointAmount && pointDescription) {
       awardPoints(selectedEmployee, -parseInt(pointAmount), pointDescription);
-      setPointAmount('');
-      setPointDescription('');
+      setPointAmount("");
+      setPointDescription("");
       setShowRemoveModal(false);
       setSelectedEmployee(null);
     }
@@ -49,7 +60,7 @@ export default function EmployeeManagement() {
         setShowDeleteModal(false);
         setDeleteUserId(null);
       } catch (error) {
-        alert((error as Error).message || 'Failed to delete employee');
+        alert((error as Error).message || "Failed to delete employee");
       }
     }
   };
@@ -65,11 +76,14 @@ export default function EmployeeManagement() {
   };
 
   const getUserAchievementCount = (userId: string) => {
-    return userAchievements.filter(ua => ua.userId === userId).length;
+    return (
+      userAchievements &&
+      userAchievements.filter((ua) => ua.userId === userId).length
+    );
   };
 
   const getUserRecentTransactions = (userId: string) => {
-    return transactions.filter(t => t.userId === userId).slice(0, 3);
+    return transactions.filter((t) => t.userId === userId).slice(0, 3);
   };
 
   return (
@@ -87,7 +101,9 @@ export default function EmployeeManagement() {
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
         <div className="p-6 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-gray-800">All Employees ({employees.length})</h3>
+            <h3 className="text-xl font-bold text-gray-800">
+              All Employees ({employees.length})
+            </h3>
           </div>
         </div>
 
@@ -120,11 +136,18 @@ export default function EmployeeManagement() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {employees.map((employee) => (
-                <tr key={employee.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={employee.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-bold text-gray-900">{employee.fullName}</div>
-                      <div className="text-xs text-gray-500">{employee.email}</div>
+                      <div className="text-sm font-bold text-gray-900">
+                        {employee.fullName}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {employee.email}
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -135,13 +158,17 @@ export default function EmployeeManagement() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <Trophy className="w-4 h-4 text-yellow-600" />
-                      <span className="text-sm font-bold text-gray-900">{employee.points}</span>
+                      <span className="text-sm font-bold text-gray-900">
+                        {employee.points}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-green-600" />
-                      <span className="text-sm font-bold text-gray-900">{employee.totalPointsEarned}</span>
+                      <span className="text-sm font-bold text-gray-900">
+                        {employee.totalPointsEarned}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -199,14 +226,16 @@ export default function EmployeeManagement() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <Gift className="w-6 h-6 text-blue-600" />
-                <h3 className="text-xl font-bold text-gray-800">Award Points</h3>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Award Points
+                </h3>
               </div>
               <button
                 onClick={() => {
                   setShowAwardModal(false);
                   setSelectedEmployee(null);
-                  setPointAmount('');
-                  setPointDescription('');
+                  setPointAmount("");
+                  setPointDescription("");
                 }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
@@ -216,9 +245,15 @@ export default function EmployeeManagement() {
 
             {selectedUser && (
               <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                <p className="text-sm text-gray-600 mb-1">Awarding points to:</p>
-                <p className="text-lg font-bold text-gray-900">{selectedUser.fullName}</p>
-                <p className="text-sm text-gray-600">Current: {selectedUser.points} pts</p>
+                <p className="text-sm text-gray-600 mb-1">
+                  Awarding points to:
+                </p>
+                <p className="text-lg font-bold text-gray-900">
+                  {selectedUser.fullName}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Current: {selectedUser.points} pts
+                </p>
               </div>
             )}
 
@@ -258,8 +293,8 @@ export default function EmployeeManagement() {
                   onClick={() => {
                     setShowAwardModal(false);
                     setSelectedEmployee(null);
-                    setPointAmount('');
-                    setPointDescription('');
+                    setPointAmount("");
+                    setPointDescription("");
                   }}
                   className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all"
                 >
@@ -285,14 +320,16 @@ export default function EmployeeManagement() {
                 <div className="bg-orange-100 p-3 rounded-xl">
                   <Minus className="w-6 h-6 text-orange-600" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">Remove Points</h3>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Remove Points
+                </h3>
               </div>
               <button
                 onClick={() => {
                   setShowRemoveModal(false);
                   setSelectedEmployee(null);
-                  setPointAmount('');
-                  setPointDescription('');
+                  setPointAmount("");
+                  setPointDescription("");
                 }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
@@ -302,9 +339,15 @@ export default function EmployeeManagement() {
 
             {selectedUser && (
               <div className="mb-6 p-4 bg-orange-50 rounded-xl border border-orange-200">
-                <p className="text-sm text-gray-600 mb-1">Removing points from:</p>
-                <p className="text-lg font-bold text-gray-900">{selectedUser.fullName}</p>
-                <p className="text-sm text-gray-600">Current: {selectedUser.points} pts</p>
+                <p className="text-sm text-gray-600 mb-1">
+                  Removing points from:
+                </p>
+                <p className="text-lg font-bold text-gray-900">
+                  {selectedUser.fullName}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Current: {selectedUser.points} pts
+                </p>
               </div>
             )}
 
@@ -344,8 +387,8 @@ export default function EmployeeManagement() {
                   onClick={() => {
                     setShowRemoveModal(false);
                     setSelectedEmployee(null);
-                    setPointAmount('');
-                    setPointDescription('');
+                    setPointAmount("");
+                    setPointDescription("");
                   }}
                   className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all"
                 >
@@ -370,21 +413,24 @@ export default function EmployeeManagement() {
               <div className="bg-red-100 p-3 rounded-xl">
                 <Trash2 className="w-6 h-6 text-red-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800">Delete Employee</h3>
+              <h3 className="text-xl font-bold text-gray-800">
+                Delete Employee
+              </h3>
             </div>
 
             <div className="mb-6">
               <p className="text-gray-700 mb-4">
-                Are you sure you want to delete this employee? This action cannot be undone.
+                Are you sure you want to delete this employee? This action
+                cannot be undone.
               </p>
-              {users.find(u => u.id === deleteUserId) && (
+              {users.find((u) => u.id === deleteUserId) && (
                 <div className="p-4 bg-red-50 rounded-xl border border-red-200">
                   <p className="text-sm text-gray-600 mb-1">Employee:</p>
                   <p className="text-lg font-bold text-gray-900">
-                    {users.find(u => u.id === deleteUserId)?.fullName}
+                    {users.find((u) => u.id === deleteUserId)?.fullName}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {users.find(u => u.id === deleteUserId)?.email}
+                    {users.find((u) => u.id === deleteUserId)?.email}
                   </p>
                 </div>
               )}

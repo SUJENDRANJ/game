@@ -1,32 +1,33 @@
-import { Trophy, TrendingUp, Flame, Star, Award } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { Trophy, TrendingUp, Flame, Star, Award } from "lucide-react";
+import { useApp } from "../context/AppContext";
 
 export default function EmployeeDashboard() {
-  const { currentUser, achievements, userAchievements, transactions } = useApp();
+  const { currentUser, achievements, userAchievements, transactions } =
+    useApp();
 
   if (!currentUser) return null;
 
-  const unlockedAchievementIds = userAchievements
-    .filter(ua => ua.userId === currentUser.id)
-    .map(ua => ua.achievementId);
+  const unlockedAchievementIds = (userAchievements || [])
+    .filter((ua) => ua.userId === currentUser.id)
+    .map((ua) => ua.achievementId);
 
-  const unlockedAchievements = achievements.filter(a =>
+  const unlockedAchievements = (achievements || []).filter((a) =>
     unlockedAchievementIds.includes(a.id)
   );
 
-  const recentTransactions = transactions
-    .filter(t => t.userId === currentUser.id && t.amount > 0)
+  const recentTransactions = (transactions || [])
+    .filter((t) => t.userId === currentUser.id && t.amount > 0)
     .slice(0, 5);
 
-  const nextLevelPoints = (currentUser.level * 100);
+  const nextLevelPoints = currentUser.level * 100;
   const currentLevelProgress = currentUser.totalPointsEarned % 100;
   const progressPercentage = (currentLevelProgress / 100) * 100;
 
   const rarityColors = {
-    common: 'from-gray-400 to-gray-500',
-    rare: 'from-blue-400 to-blue-600',
-    epic: 'from-purple-400 to-purple-600',
-    legendary: 'from-yellow-400 to-orange-500'
+    common: "from-gray-400 to-gray-500",
+    rare: "from-blue-400 to-blue-600",
+    epic: "from-purple-400 to-purple-600",
+    legendary: "from-yellow-400 to-orange-500",
   };
 
   return (
@@ -45,13 +46,17 @@ export default function EmployeeDashboard() {
             <Star className="w-8 h-8 opacity-80" />
             <span className="text-3xl font-black">{currentUser.points}</span>
           </div>
-          <p className="text-orange-100 font-semibold text-sm">Available Points</p>
+          <p className="text-orange-100 font-semibold text-sm">
+            Available Points
+          </p>
         </div>
 
         <div className="bg-gradient-to-br from-green-500 to-emerald-700 rounded-2xl p-6 text-white shadow-xl hover:scale-105 transition-transform">
           <div className="flex items-center justify-between mb-4">
             <TrendingUp className="w-8 h-8 opacity-80" />
-            <span className="text-3xl font-black">{currentUser.totalPointsEarned}</span>
+            <span className="text-3xl font-black">
+              {currentUser.totalPointsEarned}
+            </span>
           </div>
           <p className="text-green-100 font-semibold text-sm">Total Earned</p>
         </div>
@@ -59,7 +64,9 @@ export default function EmployeeDashboard() {
         <div className="bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl p-6 text-white shadow-xl hover:scale-105 transition-transform">
           <div className="flex items-center justify-between mb-4">
             <Flame className="w-8 h-8 opacity-80" />
-            <span className="text-3xl font-black">{currentUser.streakDays}</span>
+            <span className="text-3xl font-black">
+              {currentUser.streakDays}
+            </span>
           </div>
           <p className="text-pink-100 font-semibold text-sm">Day Streak</p>
         </div>
@@ -93,7 +100,9 @@ export default function EmployeeDashboard() {
         <div className="bg-white rounded-2xl p-6 shadow-lg">
           <div className="flex items-center gap-2 mb-4">
             <Award className="w-6 h-6 text-purple-600" />
-            <h3 className="text-xl font-bold text-gray-800">Recent Achievements</h3>
+            <h3 className="text-xl font-bold text-gray-800">
+              Recent Achievements
+            </h3>
           </div>
           {unlockedAchievements.length === 0 ? (
             <p className="text-gray-500 text-center py-8">
@@ -101,17 +110,25 @@ export default function EmployeeDashboard() {
             </p>
           ) : (
             <div className="space-y-3">
-              {unlockedAchievements.slice(0, 4).map(achievement => (
+              {unlockedAchievements.slice(0, 4).map((achievement) => (
                 <div
                   key={achievement.id}
                   className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 hover:scale-105 transition-transform"
                 >
-                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${rarityColors[achievement.rarity]} flex items-center justify-center shadow-lg`}>
+                  <div
+                    className={`w-14 h-14 rounded-xl bg-gradient-to-br ${
+                      rarityColors[achievement.rarity]
+                    } flex items-center justify-center shadow-lg`}
+                  >
                     <Trophy className="w-8 h-8 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-bold text-gray-800">{achievement.title}</h4>
-                    <p className="text-sm text-gray-600">{achievement.description}</p>
+                    <h4 className="font-bold text-gray-800">
+                      {achievement.title}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {achievement.description}
+                    </p>
                   </div>
                   <div className="text-right">
                     <span className="text-lg font-bold text-yellow-600">
@@ -135,13 +152,15 @@ export default function EmployeeDashboard() {
             </p>
           ) : (
             <div className="space-y-3">
-              {recentTransactions.map(transaction => (
+              {recentTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
                   className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200"
                 >
                   <div>
-                    <p className="font-semibold text-gray-800">{transaction.description}</p>
+                    <p className="font-semibold text-gray-800">
+                      {transaction.description}
+                    </p>
                     <p className="text-xs text-gray-500">
                       {new Date(transaction.createdAt).toLocaleDateString()}
                     </p>

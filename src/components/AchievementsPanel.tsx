@@ -1,37 +1,38 @@
-import { Trophy, Lock, CheckCircle } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { Trophy, Lock, CheckCircle } from "lucide-react";
+import { useApp } from "../context/AppContext";
 
 export default function AchievementsPanel() {
   const { currentUser, achievements, userAchievements } = useApp();
 
-  const unlockedAchievementIds = userAchievements
-    .filter(ua => ua.userId === currentUser?.id)
-    .map(ua => ua.achievementId);
+  const unlockedAchievementIds = (userAchievements || [])
+    .filter((ua) => ua.userId === currentUser?.id)
+    .map((ua) => ua.achievementId);
 
   const rarityColors = {
-    common: 'from-gray-400 to-gray-500',
-    rare: 'from-blue-400 to-blue-600',
-    epic: 'from-purple-400 to-purple-600',
-    legendary: 'from-yellow-400 to-orange-500'
+    common: "from-gray-400 to-gray-500",
+    rare: "from-blue-400 to-blue-600",
+    epic: "from-purple-400 to-purple-600",
+    legendary: "from-yellow-400 to-orange-500",
   };
 
   const rarityBorders = {
-    common: 'border-gray-300',
-    rare: 'border-blue-300',
-    epic: 'border-purple-300',
-    legendary: 'border-yellow-300'
+    common: "border-gray-300",
+    rare: "border-blue-300",
+    epic: "border-purple-300",
+    legendary: "border-yellow-300",
   };
 
   const categoryColors = {
-    compliance: 'bg-green-100 text-green-800',
-    teamwork: 'bg-blue-100 text-blue-800',
-    milestone: 'bg-purple-100 text-purple-800',
-    special: 'bg-orange-100 text-orange-800'
+    compliance: "bg-green-100 text-green-800",
+    teamwork: "bg-blue-100 text-blue-800",
+    milestone: "bg-purple-100 text-purple-800",
+    special: "bg-orange-100 text-orange-800",
   };
 
   const unlockedCount = unlockedAchievementIds.length;
-  const totalCount = achievements.length;
-  const completionPercentage = (unlockedCount / totalCount) * 100;
+  const totalCount = (achievements || []).length;
+  const completionPercentage =
+    totalCount > 0 ? (unlockedCount / totalCount) * 100 : 0;
 
   return (
     <div className="space-y-6">
@@ -47,7 +48,9 @@ export default function AchievementsPanel() {
         <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="font-bold text-white">Progress</span>
-            <span className="font-bold text-white">{unlockedCount}/{totalCount}</span>
+            <span className="font-bold text-white">
+              {unlockedCount}/{totalCount}
+            </span>
           </div>
           <div className="h-4 bg-white/20 rounded-full overflow-hidden">
             <div
@@ -59,17 +62,23 @@ export default function AchievementsPanel() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {achievements.map(achievement => {
+        {(achievements || []).map((achievement) => {
           const isUnlocked = unlockedAchievementIds.includes(achievement.id);
 
           return (
             <div
               key={achievement.id}
               className={`bg-white rounded-2xl shadow-lg overflow-hidden transition-all ${
-                isUnlocked ? 'hover:scale-105 ring-2 ring-green-400' : 'opacity-60'
+                isUnlocked
+                  ? "hover:scale-105 ring-2 ring-green-400"
+                  : "opacity-60"
               } border-4 ${rarityBorders[achievement.rarity]}`}
             >
-              <div className={`h-32 bg-gradient-to-br ${rarityColors[achievement.rarity]} relative flex items-center justify-center`}>
+              <div
+                className={`h-32 bg-gradient-to-br ${
+                  rarityColors[achievement.rarity]
+                } relative flex items-center justify-center`}
+              >
                 {isUnlocked ? (
                   <>
                     <Trophy className="w-16 h-16 text-white" />
@@ -88,7 +97,11 @@ export default function AchievementsPanel() {
                     <h4 className="text-lg font-bold text-gray-800 mb-1">
                       {achievement.title}
                     </h4>
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold capitalize ${categoryColors[achievement.category]}`}>
+                    <span
+                      className={`inline-block px-3 py-1 rounded-full text-xs font-bold capitalize ${
+                        categoryColors[achievement.category]
+                      }`}
+                    >
                       {achievement.category}
                     </span>
                   </div>
@@ -106,7 +119,11 @@ export default function AchievementsPanel() {
                     </span>
                   </div>
 
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase bg-gradient-to-r ${rarityColors[achievement.rarity]} text-white`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-bold uppercase bg-gradient-to-r ${
+                      rarityColors[achievement.rarity]
+                    } text-white`}
+                  >
                     {achievement.rarity}
                   </span>
                 </div>
@@ -125,7 +142,10 @@ export default function AchievementsPanel() {
           <li>• Complete daily tasks to unlock compliance achievements</li>
           <li>• Help teammates to earn teamwork badges</li>
           <li>• Legendary achievements give the most points</li>
-          <li>• Check with your manager to see which achievements you can unlock next</li>
+          <li>
+            • Check with your manager to see which achievements you can unlock
+            next
+          </li>
         </ul>
       </div>
     </div>

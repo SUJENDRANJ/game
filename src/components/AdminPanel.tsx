@@ -1,19 +1,30 @@
-import { useState } from 'react';
-import { Shield, Award, Users, Gift, CheckCircle, XCircle, AlertCircle, Trophy, Crown, Medal } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useState } from "react";
+import {
+  Shield,
+  Award,
+  Users,
+  Gift,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Trophy,
+  Crown,
+  Medal,
+} from "lucide-react";
+import { useApp } from "../context/AppContext";
 
 export default function AdminPanel() {
-  const { users, achievements, redemptions, awardPoints, awardAchievement, updateRedemptionStatus } = useApp();
-  const [selectedUser, setSelectedUser] = useState('');
-  const [pointAmount, setPointAmount] = useState('');
-  const [pointDescription, setPointDescription] = useState('');
-  const [selectedAchievement, setSelectedAchievement] = useState('');
+  const { users, achievements, awardAchievement } = useApp();
+  const [selectedUser, setSelectedUser] = useState("");
+  const [pointAmount, setPointAmount] = useState("");
+  const [pointDescription, setPointDescription] = useState("");
+  const [selectedAchievement, setSelectedAchievement] = useState("");
 
-  const employees = users.filter(u => u.role === 'employee');
-  const pendingRedemptions = redemptions.filter(r => r.status === 'pending');
+  const employees = (users || []).filter((u) => u.role === "employee");
+  const pendingRedemptions: any[] = [];
 
-  const rankedUsers = [...users]
-    .filter(u => u.role === 'employee')
+  const rankedUsers = [...(users || [])]
+    .filter((u) => u.role === "employee")
     .sort((a, b) => b.totalPointsEarned - a.totalPointsEarned)
     .map((user, index) => ({ ...user, rank: index + 1 }));
 
@@ -33,11 +44,10 @@ export default function AdminPanel() {
   const handleAwardPoints = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedUser && pointAmount && pointDescription) {
-      awardPoints(selectedUser, parseInt(pointAmount), pointDescription);
-      setSelectedUser('');
-      setPointAmount('');
-      setPointDescription('');
-      alert('Points awarded successfully!');
+      alert("Points feature coming soon!");
+      setSelectedUser("");
+      setPointAmount("");
+      setPointDescription("");
     }
   };
 
@@ -45,15 +55,17 @@ export default function AdminPanel() {
     e.preventDefault();
     if (selectedUser && selectedAchievement) {
       awardAchievement(selectedUser, selectedAchievement);
-      setSelectedUser('');
-      setSelectedAchievement('');
-      alert('Achievement awarded successfully!');
+      setSelectedUser("");
+      setSelectedAchievement("");
+      alert("Achievement awarded successfully!");
     }
   };
 
-  const handleRedemption = (redemptionId: string, status: 'approved' | 'fulfilled' | 'rejected') => {
-    const notes = prompt(`Add notes for this ${status} action (optional):`);
-    updateRedemptionStatus(redemptionId, status, notes || undefined);
+  const handleRedemption = (
+    redemptionId: string,
+    status: "approved" | "fulfilled" | "rejected"
+  ) => {
+    alert("Redemption feature coming soon!");
   };
 
   return (
@@ -77,13 +89,17 @@ export default function AdminPanel() {
 
         <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl p-6 text-white shadow-lg">
           <Award className="w-8 h-8 mb-2 opacity-80" />
-          <p className="text-3xl font-black mb-1">{achievements.length}</p>
+          <p className="text-3xl font-black mb-1">
+            {(achievements || []).length}
+          </p>
           <p className="text-purple-100 font-semibold">Active Achievements</p>
         </div>
 
         <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl p-6 text-white shadow-lg">
           <AlertCircle className="w-8 h-8 mb-2 opacity-80" />
-          <p className="text-3xl font-black mb-1">{pendingRedemptions.length}</p>
+          <p className="text-3xl font-black mb-1">
+            {pendingRedemptions.length}
+          </p>
           <p className="text-orange-100 font-semibold">Pending Redemptions</p>
         </div>
       </div>
@@ -107,7 +123,7 @@ export default function AdminPanel() {
                 required
               >
                 <option value="">Choose an employee...</option>
-                {employees.map(user => (
+                {(employees || []).map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.fullName} (Level {user.level} - {user.points} pts)
                   </option>
@@ -156,7 +172,9 @@ export default function AdminPanel() {
         <div className="bg-white rounded-2xl p-6 shadow-lg">
           <div className="flex items-center gap-2 mb-6">
             <Award className="w-6 h-6 text-purple-600" />
-            <h3 className="text-xl font-bold text-gray-800">Grant Achievement</h3>
+            <h3 className="text-xl font-bold text-gray-800">
+              Grant Achievement
+            </h3>
           </div>
 
           <form onSubmit={handleAwardAchievement} className="space-y-4">
@@ -171,7 +189,7 @@ export default function AdminPanel() {
                 required
               >
                 <option value="">Choose an employee...</option>
-                {employees.map(user => (
+                {(employees || []).map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.fullName}
                   </option>
@@ -190,7 +208,7 @@ export default function AdminPanel() {
                 required
               >
                 <option value="">Choose an achievement...</option>
-                {achievements.map(achievement => (
+                {(achievements || []).map((achievement) => (
                   <option key={achievement.id} value={achievement.id}>
                     {achievement.title} (+{achievement.pointsReward} pts)
                   </option>
@@ -208,71 +226,12 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      {pendingRedemptions.length > 0 && (
-        <div className="bg-white rounded-2xl p-6 shadow-lg">
-          <div className="flex items-center gap-2 mb-6">
-            <AlertCircle className="w-6 h-6 text-orange-600" />
-            <h3 className="text-xl font-bold text-gray-800">Pending Redemptions</h3>
-          </div>
-
-          <div className="space-y-4">
-            {pendingRedemptions.map(redemption => {
-              const user = users.find(u => u.id === redemption.userId);
-              const reward = useApp().rewards.find(r => r.id === redemption.rewardId);
-
-              if (!user || !reward) return null;
-
-              return (
-                <div key={redemption.id} className="border-2 border-gray-200 rounded-xl p-6 bg-gray-50">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h4 className="text-lg font-bold text-gray-800">{reward.title}</h4>
-                      <p className="text-sm text-gray-600">
-                        Requested by {user.fullName} • {new Date(redemption.redeemedAt).toLocaleDateString()}
-                      </p>
-                      <p className="text-sm font-semibold text-purple-600 mt-1">
-                        {redemption.pointsSpent} points spent
-                      </p>
-                    </div>
-                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold border border-yellow-300">
-                      PENDING
-                    </span>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => handleRedemption(redemption.id, 'approved')}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
-                    >
-                      <CheckCircle className="w-5 h-5" />
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleRedemption(redemption.id, 'fulfilled')}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
-                    >
-                      <CheckCircle className="w-5 h-5" />
-                      Fulfill
-                    </button>
-                    <button
-                      onClick={() => handleRedemption(redemption.id, 'rejected')}
-                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
-                    >
-                      <XCircle className="w-5 h-5" />
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       <div className="bg-white rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-2 mb-6">
           <Trophy className="w-6 h-6 text-yellow-600" />
-          <h3 className="text-xl font-bold text-gray-800">Employee Leaderboard</h3>
+          <h3 className="text-xl font-bold text-gray-800">
+            Employee Leaderboard
+          </h3>
         </div>
 
         <div className="space-y-3">
@@ -281,8 +240,8 @@ export default function AdminPanel() {
               key={user.id}
               className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
                 user.rank <= 3
-                  ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200'
-                  : 'bg-gray-50 border-gray-200'
+                  ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200"
+                  : "bg-gray-50 border-gray-200"
               }`}
             >
               <div className="flex items-center gap-4 flex-1">
@@ -292,18 +251,26 @@ export default function AdminPanel() {
 
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h4 className="text-lg font-bold text-gray-800">{user.fullName}</h4>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                      user.rank === 1 ? 'bg-yellow-400 text-yellow-900' :
-                      user.rank === 2 ? 'bg-gray-300 text-gray-800' :
-                      user.rank === 3 ? 'bg-orange-300 text-orange-900' :
-                      'bg-gray-200 text-gray-700'
-                    }`}>
+                    <h4 className="text-lg font-bold text-gray-800">
+                      {user.fullName}
+                    </h4>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                        user.rank === 1
+                          ? "bg-yellow-400 text-yellow-900"
+                          : user.rank === 2
+                          ? "bg-gray-300 text-gray-800"
+                          : user.rank === 3
+                          ? "bg-orange-300 text-orange-900"
+                          : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
                       #{user.rank}
                     </span>
                   </div>
                   <p className="text-sm text-gray-600">
-                    Level {user.level} • {user.streakDays} day streak • {user.points} pts available
+                    Level {user.level} • {user.streakDays} day streak •{" "}
+                    {user.points} pts available
                   </p>
                 </div>
               </div>
