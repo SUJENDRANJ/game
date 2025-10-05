@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Plus, Trophy, X } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 
 export default function AchievementsManager() {
-  const { achievements } = useApp();
+  const { achievements, createAchievement, deleteAchievement } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -35,19 +34,12 @@ export default function AchievementsManager() {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('achievements')
-        .insert({
-          title: formData.title,
-          description: formData.description,
-          icon: formData.icon,
-          points_reward: formData.pointsReward,
-          category: formData.category,
-          rarity: formData.rarity,
-          created_by: (await supabase.auth.getUser()).data.user?.id
-        });
-
-      if (error) throw error;
+      await createAchievement({
+        title: formData.title,
+        description: formData.description,
+        icon: formData.icon,
+        points: formData.pointsReward
+      });
 
       setFormData({
         title: '',
@@ -70,12 +62,7 @@ export default function AchievementsManager() {
     if (!confirm('Are you sure you want to delete this achievement?')) return;
 
     try {
-      const { error } = await supabase
-        .from('achievements')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await deleteAchievement(id);
     } catch (error) {
       console.error('Error deleting achievement:', error);
       alert('Failed to delete achievement');

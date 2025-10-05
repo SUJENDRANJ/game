@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Plus, Gift, X, Clock, Star, ShoppingBag, Sparkles } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 
 export default function RewardsManager() {
-  const { rewards } = useApp();
+  const { rewards, createReward, deleteReward } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -28,20 +27,13 @@ export default function RewardsManager() {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('rewards')
-        .insert({
-          title: formData.title,
-          description: formData.description,
-          points_cost: formData.pointsCost,
-          category: formData.category,
-          image_url: formData.imageUrl || null,
-          stock_quantity: formData.stockQuantity || null,
-          is_active: true,
-          created_by: (await supabase.auth.getUser()).data.user?.id
-        });
-
-      if (error) throw error;
+      await createReward({
+        name: formData.title,
+        description: formData.description,
+        cost: formData.pointsCost,
+        icon: formData.imageUrl || 'Gift',
+        stock: formData.stockQuantity || 999
+      });
 
       setFormData({
         title: '',
@@ -64,31 +56,13 @@ export default function RewardsManager() {
     if (!confirm('Are you sure you want to delete this reward?')) return;
 
     try {
-      const { error } = await supabase
-        .from('rewards')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await deleteReward(id);
     } catch (error) {
       console.error('Error deleting reward:', error);
       alert('Failed to delete reward');
     }
   };
 
-  const handleToggleActive = async (id: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('rewards')
-        .update({ is_active: !currentStatus })
-        .eq('id', id);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error updating reward:', error);
-      alert('Failed to update reward');
-    }
-  };
 
   const categoryColors = {
     time_off: 'from-blue-500 to-blue-700',

@@ -3,9 +3,7 @@ import { useApp } from '../context/AppContext';
 import { Reward } from '../types';
 
 export default function RewardsMarketplace() {
-  const { currentUser, rewards, redemptions, redeemReward } = useApp();
-
-  const userRedemptions = redemptions.filter(r => r.userId === currentUser?.id);
+  const { currentUser, rewards, redeemReward } = useApp();
 
   const categoryIcons = {
     time_off: Clock,
@@ -28,7 +26,7 @@ export default function RewardsMarketplace() {
   const handleRedeem = (reward: Reward) => {
     if (currentUser && canAfford(reward)) {
       if (confirm(`Redeem ${reward.title} for ${reward.pointsCost} points?`)) {
-        redeemReward(currentUser.id, reward.id);
+        redeemReward(reward.id);
       }
     }
   };
@@ -58,41 +56,6 @@ export default function RewardsMarketplace() {
         </div>
       </div>
 
-      {userRedemptions.length > 0 && (
-        <div className="bg-white rounded-2xl p-6 shadow-lg">
-          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <Check className="w-6 h-6 text-green-600" />
-            Your Recent Redemptions
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {userRedemptions.slice(0, 4).map(redemption => {
-              const reward = rewards.find(r => r.id === redemption.rewardId);
-              if (!reward) return null;
-
-              const statusColors = {
-                pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-                approved: 'bg-blue-100 text-blue-800 border-blue-300',
-                fulfilled: 'bg-green-100 text-green-800 border-green-300',
-                rejected: 'bg-red-100 text-red-800 border-red-300'
-              };
-
-              return (
-                <div key={redemption.id} className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50">
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-bold text-gray-800">{reward.title}</h4>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${statusColors[redemption.status]}`}>
-                      {redemption.status.toUpperCase()}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    Redeemed {new Date(redemption.redeemedAt).toLocaleDateString()}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {Object.entries(groupedRewards).map(([category, categoryRewards]) => {
         const Icon = categoryIcons[category as keyof typeof categoryIcons];
