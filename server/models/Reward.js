@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const RewardSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
@@ -11,4 +11,4 @@ const RewardSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("Reward", RewardSchema);
+export default mongoose.model("Reward", RewardSchema);

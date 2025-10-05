@@ -1,9 +1,9 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
-const dotenv = require("dotenv");
-const User = require("./models/User");
-const Achievement = require("./models/Achievement");
-const Reward = require("./models/Reward");
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
+import User from "./models/User.js";
+import Achievement from "./models/Achievement.js";
+import Reward from "./models/Reward.js";
 
 dotenv.config();
 

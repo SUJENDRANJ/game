@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const AchievementSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
@@ -10,4 +10,4 @@ const AchievementSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("Achievement", AchievementSchema);
+export default mongoose.model("Achievement", AchievementSchema);

@@ -1,13 +1,13 @@
-const express = require("express");
-const cors = require("cors");
-const http = require("http");
-const { Server } = require("socket.io");
-const dotenv = require("dotenv");
-const connectDB = require("./db");
-const authRoutes = require("./routes/auth");
-const achievementsRoutes = require("./routes/achievements");
-const rewardsRoutes = require("./routes/rewards");
-const leaderboardRoutes = require("./routes/leaderboard");
+import express from "express";
+import cors from "cors";
+import http from "http";
+import { Server } from "socket.io";
+import dotenv from "dotenv";
+import connectDB from "./db.js";
+import authRoutes from "./routes/auth.js";
+import achievementsRoutes from "./routes/achievements.js";
+import rewardsRoutes from "./routes/rewards.js";
+import leaderboardRoutes from "./routes/leaderboard.js";
 
 dotenv.config();
 
