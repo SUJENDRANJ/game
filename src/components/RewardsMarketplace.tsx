@@ -1,6 +1,6 @@
-import { ShoppingBag, Clock, Gift, Sparkles, Star, Check } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { Reward } from '../types';
+import { ShoppingBag, Clock, Gift, Sparkles, Star, Check } from "lucide-react";
+import { useApp } from "../context/AppContext";
+import { Reward } from "../types";
 
 export default function RewardsMarketplace() {
   const { currentUser, rewards, redeemReward } = useApp();
@@ -9,14 +9,14 @@ export default function RewardsMarketplace() {
     time_off: Clock,
     perks: Star,
     swag: Gift,
-    experiences: Sparkles
+    experiences: Sparkles,
   };
 
   const categoryColors = {
-    time_off: 'from-blue-500 to-blue-700',
-    perks: 'from-purple-500 to-purple-700',
-    swag: 'from-pink-500 to-pink-700',
-    experiences: 'from-orange-500 to-red-600'
+    time_off: "from-blue-500 to-blue-700",
+    perks: "from-purple-500 to-purple-700",
+    swag: "from-pink-500 to-pink-700",
+    experiences: "from-orange-500 to-red-600",
   };
 
   const canAfford = (reward: Reward) => {
@@ -51,36 +51,44 @@ export default function RewardsMarketplace() {
         </p>
         <div className="flex items-center gap-2 bg-white/20 rounded-xl px-6 py-3 backdrop-blur-sm w-fit">
           <Star className="w-6 h-6 text-yellow-300" />
-          <span className="text-2xl font-black">{currentUser?.points || 0}</span>
+          <span className="text-2xl font-black">
+            {currentUser?.points || 0}
+          </span>
           <span className="text-pink-100 font-semibold">points available</span>
         </div>
       </div>
 
-
       {Object.entries(groupedRewards).map(([category, categoryRewards]) => {
-        const Icon = categoryIcons[category as keyof typeof categoryIcons];
-        const gradient = categoryColors[category as keyof typeof categoryColors];
+        const Icon =
+          categoryIcons[category as keyof typeof categoryIcons] || Gift;
+        const gradient =
+          categoryColors[category as keyof typeof categoryColors] ||
+          "from-yellow-400 to-orange-600";
 
         return (
           <div key={category}>
-            <div className={`bg-gradient-to-r ${gradient} rounded-xl p-4 mb-4 shadow-md`}>
+            <div
+              className={`bg-gradient-to-r ${gradient} rounded-xl p-4 mb-4 shadow-md`}
+            >
               <div className="flex items-center gap-2 text-white">
                 <Icon className="w-6 h-6" />
                 <h3 className="text-xl font-bold capitalize">
-                  {category.replace('_', ' ')}
+                  {category.replace("_", " ")}
                 </h3>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categoryRewards.map(reward => (
+              {categoryRewards.map((reward) => (
                 <div
                   key={reward.id}
                   className={`bg-white rounded-2xl shadow-lg overflow-hidden transition-all hover:scale-105 ${
-                    canAfford(reward) ? 'hover:shadow-2xl' : 'opacity-75'
+                    canAfford(reward) ? "hover:shadow-2xl" : "opacity-75"
                   }`}
                 >
-                  <div className={`h-32 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+                  <div
+                    className={`h-32 bg-gradient-to-br ${gradient} flex items-center justify-center`}
+                  >
                     <Icon className="w-16 h-16 text-white opacity-80" />
                   </div>
 
@@ -103,7 +111,12 @@ export default function RewardsMarketplace() {
                         <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div
                             className={`h-full bg-gradient-to-r ${gradient} rounded-full transition-all`}
-                            style={{ width: `${Math.min((reward.stockQuantity / 30) * 100, 100)}%` }}
+                            style={{
+                              width: `${Math.min(
+                                (reward.stockQuantity / 30) * 100,
+                                100
+                              )}%`,
+                            }}
                           />
                         </div>
                       </div>
@@ -123,10 +136,10 @@ export default function RewardsMarketplace() {
                         className={`px-6 py-3 rounded-xl font-bold transition-all ${
                           canAfford(reward)
                             ? `bg-gradient-to-r ${gradient} text-white hover:shadow-lg hover:scale-105`
-                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
                         }`}
                       >
-                        {canAfford(reward) ? 'Redeem' : 'Not Enough'}
+                        {canAfford(reward) ? "Redeem" : "Not Enough"}
                       </button>
                     </div>
                   </div>
