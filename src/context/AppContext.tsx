@@ -1,0 +1,307 @@
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { User, Achievement, Reward } from '../types';
+import { api } from '../lib/api';
+import { connectSocket, getSocket, disconnectSocket } from '../lib/socket';
+
+interface AppContextType {
+  currentUser: User | null;
+  users: User[];
+  achievements: Achievement[];
+  rewards: Reward[];
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, fullName: string) => Promise<void>;
+  logout: () => void;
+  awardAchievement: (userId: string, achievementId: string) => void;
+  redeemReward: (rewardId: string) => void;
+  createAchievement: (achievement: any) => void;
+  createReward: (reward: any) => void;
+  deleteAchievement: (achievementId: string) => void;
+  deleteReward: (rewardId: string) => void;
+  showCelebration: boolean;
+  celebrationMessage: string;
+  triggerCelebration: (message: string) => void;
+}
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+export function AppProvider({ children }: { children: ReactNode }) {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationMessage, setCelebrationMessage] = useState('');
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [achievementsData, rewardsData, leaderboardData] = await Promise.all([
+          api.achievements.getAll(),
+          api.rewards.getAll(),
+          api.leaderboard.get()
+        ]);
+
+        setAchievements(achievementsData.map((a: any) => ({
+          id: a.id,
+          title: a.title,
+          description: a.description,
+          icon: a.icon,
+          pointsReward: a.points,
+          category: 'general',
+          rarity: 'common'
+        })));
+
+        setRewards(rewardsData.map((r: any) => ({
+          id: r.id,
+          title: r.name,
+          description: r.description,
+          pointsCost: r.cost,
+          category: 'general',
+          imageUrl: r.icon,
+          stockQuantity: r.stock
+        })));
+
+        setUsers(leaderboardData.map((u: any) => ({
+          id: u.id,
+          email: u.email,
+          fullName: u.name,
+          role: 'employee',
+          points: u.points,
+          totalPointsEarned: u.points,
+          level: u.level,
+          streakDays: 0
+        })));
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+
+    const socket = connectSocket();
+
+    socket.on('achievementCreated', (achievement: any) => {
+      setAchievements(prev => [...prev, {
+        id: achievement.id,
+        title: achievement.title,
+        description: achievement.description,
+        icon: achievement.icon,
+        pointsReward: achievement.points,
+        category: 'general',
+        rarity: 'common'
+      }]);
+    });
+
+    socket.on('rewardCreated', (reward: any) => {
+      setRewards(prev => [...prev, {
+        id: reward.id,
+        title: reward.name,
+        description: reward.description,
+        pointsCost: reward.cost,
+        category: 'general',
+        imageUrl: reward.icon,
+        stockQuantity: reward.stock
+      }]);
+    });
+
+    socket.on('achievementAwarded', ({ userId, user }: any) => {
+      setUsers(prev => prev.map(u => u.id === userId ? {
+        ...u,
+        points: user.points,
+        level: user.level,
+        totalPointsEarned: user.points
+      } : u));
+
+      if (currentUser?.id === userId) {
+        setCurrentUser(prev => prev ? {
+          ...prev,
+          points: user.points,
+          level: user.level,
+          totalPointsEarned: user.points
+        } : null);
+        localStorage.setItem('currentUser', JSON.stringify({
+          ...currentUser,
+          points: user.points,
+          level: user.level,
+          totalPointsEarned: user.points
+        }));
+      }
+    });
+
+    socket.on('rewardPurchased', ({ userId, user }: any) => {
+      setUsers(prev => prev.map(u => u.id === userId ? {
+        ...u,
+        points: user.points
+      } : u));
+
+      if (currentUser?.id === userId) {
+        setCurrentUser(prev => prev ? {
+          ...prev,
+          points: user.points
+        } : null);
+        localStorage.setItem('currentUser', JSON.stringify({
+          ...currentUser,
+          points: user.points
+        }));
+      }
+    });
+
+    socket.on('achievementDeleted', (achievementId: string) => {
+      setAchievements(prev => prev.filter(a => a.id !== achievementId));
+    });
+
+    socket.on('rewardDeleted', (rewardId: string) => {
+      setRewards(prev => prev.filter(r => r.id !== rewardId));
+    });
+
+    return () => {
+      disconnectSocket();
+    };
+  }, [currentUser?.id]);
+
+  const login = async (email: string, password: string) => {
+    try {
+      const { user } = await api.auth.login(email, password);
+      const mappedUser: User = {
+        id: user.id,
+        email: user.email,
+        fullName: user.name,
+        role: user.isAdmin ? 'admin' : 'employee',
+        points: user.points,
+        totalPointsEarned: user.points,
+        level: user.level,
+        streakDays: 0
+      };
+      setCurrentUser(mappedUser);
+      localStorage.setItem('currentUser', JSON.stringify(mappedUser));
+    } catch (error: any) {
+      throw new Error(error.message || 'Login failed');
+    }
+  };
+
+  const signup = async (email: string, password: string, fullName: string) => {
+    try {
+      const { user } = await api.auth.register(email, password, fullName);
+      const mappedUser: User = {
+        id: user.id,
+        email: user.email,
+        fullName: user.name,
+        role: user.isAdmin ? 'admin' : 'employee',
+        points: user.points,
+        totalPointsEarned: user.points,
+        level: user.level,
+        streakDays: 0
+      };
+      setCurrentUser(mappedUser);
+      localStorage.setItem('currentUser', JSON.stringify(mappedUser));
+    } catch (error: any) {
+      throw new Error(error.message || 'Signup failed');
+    }
+  };
+
+  const logout = () => {
+    api.auth.logout();
+    setCurrentUser(null);
+    localStorage.removeItem('currentUser');
+  };
+
+  const triggerCelebration = (message: string) => {
+    setCelebrationMessage(message);
+    setShowCelebration(true);
+    setTimeout(() => setShowCelebration(false), 3000);
+  };
+
+  const awardAchievement = async (userId: string, achievementId: string) => {
+    try {
+      await api.achievements.award(achievementId, userId);
+      const achievement = achievements.find(a => a.id === achievementId);
+      if (achievement && userId === currentUser?.id) {
+        triggerCelebration(`Achievement unlocked: ${achievement.title}`);
+      }
+    } catch (error) {
+      console.error('Error awarding achievement:', error);
+    }
+  };
+
+  const redeemReward = async (rewardId: string) => {
+    try {
+      await api.rewards.purchase(rewardId);
+      const reward = rewards.find(r => r.id === rewardId);
+      if (reward) {
+        triggerCelebration(`Reward redeemed: ${reward.title}`);
+      }
+    } catch (error: any) {
+      alert(error.message || 'Failed to redeem reward');
+    }
+  };
+
+  const createAchievement = async (achievement: any) => {
+    try {
+      await api.achievements.create(achievement);
+    } catch (error) {
+      console.error('Error creating achievement:', error);
+    }
+  };
+
+  const createReward = async (reward: any) => {
+    try {
+      await api.rewards.create(reward);
+    } catch (error) {
+      console.error('Error creating reward:', error);
+    }
+  };
+
+  const deleteAchievement = async (achievementId: string) => {
+    try {
+      await api.achievements.delete(achievementId);
+    } catch (error) {
+      console.error('Error deleting achievement:', error);
+    }
+  };
+
+  const deleteReward = async (rewardId: string) => {
+    try {
+      await api.rewards.delete(rewardId);
+    } catch (error) {
+      console.error('Error deleting reward:', error);
+    }
+  };
+
+  return (
+    <AppContext.Provider value={{
+      currentUser,
+      users,
+      achievements,
+      rewards,
+      login,
+      signup,
+      logout,
+      awardAchievement,
+      redeemReward,
+      createAchievement,
+      createReward,
+      deleteAchievement,
+      deleteReward,
+      showCelebration,
+      celebrationMessage,
+      triggerCelebration
+    }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+export function useApp() {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useApp must be used within AppProvider');
+  }
+  return context;
+}
