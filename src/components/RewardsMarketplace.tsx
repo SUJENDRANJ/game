@@ -87,9 +87,17 @@ export default function RewardsMarketplace() {
                   }`}
                 >
                   <div
-                    className={`h-32 bg-gradient-to-br ${gradient} flex items-center justify-center`}
+                    className={`h-32 bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}
                   >
-                    <Icon className="w-16 h-16 text-white opacity-80" />
+                    {reward.imageUrl ? (
+                      <img
+                        src={reward.imageUrl}
+                        alt={reward.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Icon className="w-16 h-16 text-white opacity-80" />
+                    )}
                   </div>
 
                   <div className="p-6">

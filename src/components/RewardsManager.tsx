@@ -59,7 +59,9 @@ export default function RewardsManager() {
         name: formData.title,
         description: formData.description,
         cost: formData.pointsCost,
-        icon: formData.imageUrl || "Gift",
+        icon: "Gift",
+        imageUrl: formData.imageUrl,
+        category: formData.category,
         stock: formData.stockQuantity || 999,
       });
 
@@ -260,9 +262,17 @@ export default function RewardsManager() {
               className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all border-2 border-gray-200 overflow-hidden"
             >
               <div
-                className={`h-24 bg-gradient-to-br ${gradient} flex items-center justify-center`}
+                className={`h-24 bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}
               >
-                <Icon className="w-12 h-12 text-white opacity-80" />
+                {reward.imageUrl ? (
+                  <img
+                    src={reward.imageUrl}
+                    alt={reward.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Icon className="w-12 h-12 text-white opacity-80" />
+                )}
               </div>
               <div className="p-4">
                 <h3 className="font-bold text-gray-800 mb-1">{reward.title}</h3>

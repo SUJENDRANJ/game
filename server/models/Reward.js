@@ -6,6 +6,8 @@ const RewardSchema = new mongoose.Schema({
   description: { type: String, required: true },
   cost: { type: Number, required: true },
   icon: { type: String, required: true },
+  imageUrl: { type: String },
+  category: { type: String, default: 'perks' },
   isActive: { type: Boolean, default: true },
   stock: { type: Number, default: 999 },
   createdAt: { type: Date, default: Date.now },

@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
 // Create a new reward
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { name, description, cost, icon, stock } = req.body;
+    const { name, description, cost, icon, stock, imageUrl, category } = req.body;
 
     const rewardId = `rwd_${Date.now()}`;
     const reward = new Reward({
@@ -28,6 +28,8 @@ router.post("/", authMiddleware, async (req, res) => {
       description,
       cost,
       icon,
+      imageUrl,
+      category: category || 'perks',
       stock: stock || 999,
     });
 

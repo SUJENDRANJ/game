@@ -72,8 +72,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           title: r.name,
           description: r.description,
           pointsCost: r.cost,
-          category: 'general',
-          imageUrl: r.icon,
+          category: r.category || 'perks',
+          imageUrl: r.imageUrl,
           stockQuantity: r.stock
         })));
 
@@ -128,8 +128,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         title: reward.name,
         description: reward.description,
         pointsCost: reward.cost,
-        category: 'general',
-        imageUrl: reward.icon,
+        category: reward.category || 'perks',
+        imageUrl: reward.imageUrl,
         stockQuantity: reward.stock
       }]);
     });
