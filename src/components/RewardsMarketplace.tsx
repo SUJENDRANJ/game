@@ -6,17 +6,16 @@ export default function RewardsMarketplace() {
   const { currentUser, rewards, redeemReward } = useApp();
 
   const categoryIcons = {
-    time_off: Clock,
-    perks: Star,
-    swag: Gift,
-    experiences: Sparkles,
+    special_card: Clock,
+    premium_card: Sparkles,
+    normal_card: Gift,
+    // experiences: Star,
   };
 
   const categoryColors = {
-    time_off: "from-blue-500 to-blue-700",
-    perks: "from-purple-500 to-purple-700",
-    swag: "from-pink-500 to-pink-700",
-    experiences: "from-orange-500 to-red-600",
+    special_card: "from-blue-500 to-blue-700",
+    premium_card: "from-pink-500 to-pink-700",
+    normal_card: "from-orange-500 to-red-600",
   };
 
   const canAfford = (reward: Reward) => {
