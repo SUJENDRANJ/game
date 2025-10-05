@@ -11,4 +11,24 @@ const RewardSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model("Reward", RewardSchema);
+const RedemptionSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  rewardId: { type: String, required: true },
+  rewardName: { type: String, required: true },
+  pointsSpent: { type: Number, required: true },
+  status: {
+    type: String,
+    enum: ["pending", "approved", "fulfilled", "rejected"],
+    default: "pending"
+  },
+  redeemedAt: { type: Date, default: Date.now },
+  fulfilledAt: { type: Date },
+  fulfilledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  notes: { type: String },
+});
+
+export const Reward = mongoose.model("Reward", RewardSchema);
+export const Redemption = mongoose.model("Redemption", RedemptionSchema);
+
+export default Reward;

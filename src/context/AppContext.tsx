@@ -8,6 +8,7 @@ interface AppContextType {
   users: User[];
   achievements: Achievement[];
   rewards: Reward[];
+  redemptions: any[];
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, fullName: string) => Promise<void>;
   logout: () => void;
@@ -19,6 +20,7 @@ interface AppContextType {
   deleteReward: (rewardId: string) => void;
   awardPoints: (userId: string, points: number, description: string) => Promise<void>;
   deleteEmployee: (userId: string) => Promise<void>;
+  updateRedemption: (redemptionId: string, status: string, notes?: string) => Promise<void>;
   showCelebration: boolean;
   celebrationMessage: string;
   triggerCelebration: (message: string) => void;
@@ -33,6 +35,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [rewards, setRewards] = useState<Reward[]>([]);
+  const [redemptions, setRedemptions] = useState<any[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationMessage, setCelebrationMessage] = useState('');
   const [userAchievements, setUserAchievements] = useState<any[]>([]);
@@ -92,6 +95,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ]);
           setUserAchievements(userAchievementsData);
           setTransactions(userTransactions);
+        }
+
+        if (currentUser?.role === 'admin') {
+          const redemptionsData = await api.rewards.getRedemptions();
+          setRedemptions(redemptionsData);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -159,7 +167,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    socket.on('rewardPurchased', ({ userId, user }: any) => {
+    socket.on('rewardPurchased', async ({ userId, user }: any) => {
       setUsers(prev => prev.map(u => u.id === userId ? {
         ...u,
         points: user.points
@@ -174,7 +182,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ...currentUser,
           points: user.points
         }));
+
+        try {
+          const userTransactions = await api.transactions.getByUserId(userId);
+          setTransactions(userTransactions);
+        } catch (error) {
+          console.error('Error fetching transactions:', error);
+        }
       }
+    });
+
+    socket.on('redemptionCreated', (redemption: any) => {
+      setRedemptions(prev => [redemption, ...prev]);
+    });
+
+    socket.on('redemptionUpdated', (redemption: any) => {
+      setRedemptions(prev => prev.map(r => r.id === redemption.id ? redemption : r));
     });
 
     socket.on('achievementDeleted', (achievementId: string) => {
@@ -335,12 +358,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateRedemption = async (redemptionId: string, status: string, notes?: string) => {
+    try {
+      await api.rewards.updateRedemption(redemptionId, status, notes);
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to update redemption');
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       currentUser,
       users,
       achievements,
       rewards,
+      redemptions,
       login,
       signup,
       logout,
@@ -352,6 +384,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       deleteReward,
       awardPoints,
       deleteEmployee,
+      updateRedemption,
       showCelebration,
       celebrationMessage,
       triggerCelebration,

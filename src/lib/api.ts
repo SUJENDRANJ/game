@@ -121,6 +121,24 @@ export const api = {
       if (!response.ok) throw new Error(data.message || 'Failed to delete reward');
       return data;
     },
+    getRedemptions: async () => {
+      const response = await fetch(`${API_URL}/api/rewards/redemptions`, {
+        headers: getHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to fetch redemptions');
+      return data;
+    },
+    updateRedemption: async (redemptionId: string, status: string, notes?: string) => {
+      const response = await fetch(`${API_URL}/api/rewards/redemptions/${redemptionId}`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify({ status, notes }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to update redemption');
+      return data;
+    },
   },
   leaderboard: {
     get: async () => {

@@ -14,14 +14,14 @@ import {
 import { useApp } from "../context/AppContext";
 
 export default function AdminPanel() {
-  const { users, achievements, awardAchievement } = useApp();
+  const { users, achievements, awardAchievement, redemptions, updateRedemption } = useApp();
   const [selectedUser, setSelectedUser] = useState("");
   const [pointAmount, setPointAmount] = useState("");
   const [pointDescription, setPointDescription] = useState("");
   const [selectedAchievement, setSelectedAchievement] = useState("");
 
   const employees = (users || []).filter((u) => u.role === "employee");
-  const pendingRedemptions: any[] = [];
+  const pendingRedemptions = (redemptions || []).filter((r) => r.status === "pending");
 
   const rankedUsers = [...(users || [])]
     .filter((u) => u.role === "employee")
@@ -61,11 +61,16 @@ export default function AdminPanel() {
     }
   };
 
-  const handleRedemption = (
+  const handleRedemption = async (
     redemptionId: string,
     status: "approved" | "fulfilled" | "rejected"
   ) => {
-    alert("Redemption feature coming soon!");
+    try {
+      await updateRedemption(redemptionId, status);
+      alert(`Redemption ${status} successfully!`);
+    } catch (error: any) {
+      alert(error.message || 'Failed to update redemption');
+    }
   };
 
   return (
@@ -296,6 +301,121 @@ export default function AdminPanel() {
           </div>
         )}
       </div>
+
+      {redemptions && redemptions.length > 0 && (
+        <div className="bg-white rounded-2xl p-6 shadow-lg">
+          <div className="flex items-center gap-2 mb-6">
+            <Gift className="w-6 h-6 text-orange-600" />
+            <h3 className="text-xl font-bold text-gray-800">
+              Reward Redemptions
+            </h3>
+          </div>
+
+          <div className="space-y-4">
+            {redemptions.map((redemption) => (
+              <div
+                key={redemption.id}
+                className={`border-2 rounded-xl p-4 transition-all ${
+                  redemption.status === "pending"
+                    ? "border-orange-300 bg-orange-50"
+                    : redemption.status === "fulfilled"
+                    ? "border-green-300 bg-green-50"
+                    : redemption.status === "rejected"
+                    ? "border-red-300 bg-red-50"
+                    : "border-blue-300 bg-blue-50"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="text-lg font-bold text-gray-800">
+                        {redemption.rewardName}
+                      </h4>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          redemption.status === "pending"
+                            ? "bg-orange-200 text-orange-900"
+                            : redemption.status === "fulfilled"
+                            ? "bg-green-200 text-green-900"
+                            : redemption.status === "rejected"
+                            ? "bg-red-200 text-red-900"
+                            : "bg-blue-200 text-blue-900"
+                        }`}
+                      >
+                        {redemption.status.toUpperCase()}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <p>
+                        <span className="font-semibold">Employee:</span>{" "}
+                        {redemption.userName} ({redemption.userEmail})
+                      </p>
+                      <p>
+                        <span className="font-semibold">Points Spent:</span>{" "}
+                        {redemption.pointsSpent}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Redeemed:</span>{" "}
+                        {new Date(redemption.redeemedAt).toLocaleDateString()}{" "}
+                        at{" "}
+                        {new Date(redemption.redeemedAt).toLocaleTimeString()}
+                      </p>
+                      {redemption.fulfilledAt && (
+                        <p>
+                          <span className="font-semibold">Processed:</span>{" "}
+                          {new Date(
+                            redemption.fulfilledAt
+                          ).toLocaleDateString()}{" "}
+                          at{" "}
+                          {new Date(
+                            redemption.fulfilledAt
+                          ).toLocaleTimeString()}
+                        </p>
+                      )}
+                      {redemption.notes && (
+                        <p className="mt-2 italic">
+                          <span className="font-semibold">Notes:</span>{" "}
+                          {redemption.notes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {redemption.status === "pending" && (
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() =>
+                          handleRedemption(redemption.id, "fulfilled")
+                        }
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-bold rounded-lg hover:shadow-lg hover:scale-105 transition-all"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        Fulfill
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleRedemption(redemption.id, "rejected")
+                        }
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white text-sm font-bold rounded-lg hover:shadow-lg hover:scale-105 transition-all"
+                      >
+                        <XCircle className="w-4 h-4" />
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {redemptions.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No redemptions yet
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
         <h3 className="font-bold text-green-900 mb-2 flex items-center gap-2">
