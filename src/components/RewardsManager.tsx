@@ -17,7 +17,7 @@ export default function RewardsManager() {
     title: "",
     description: "",
     pointsCost: 100,
-    category: "perks",
+    category: "normal_card",
     imageUrl: "",
     stockQuantity: 10,
   });
@@ -25,26 +25,26 @@ export default function RewardsManager() {
 
   const categories = [
     {
-      value: "time_off",
-      label: "Time Off",
+      value: "special_card",
+      label: "Special Card",
       icon: Clock,
       color: "from-blue-500 to-blue-700",
     },
+    // {
+    //   value: "perks",
+    //   label: "Perks",
+    //   icon: Star,
+    //   color: "from-purple-500 to-purple-700",
+    // },
     {
-      value: "perks",
-      label: "Perks",
-      icon: Star,
-      color: "from-purple-500 to-purple-700",
-    },
-    {
-      value: "swag",
-      label: "Swag",
+      value: "premium_card",
+      label: "Premium Card",
       icon: Gift,
       color: "from-pink-500 to-pink-700",
     },
     {
-      value: "experiences",
-      label: "Experiences",
+      value: "normal_card",
+      label: "Normal Card",
       icon: Sparkles,
       color: "from-orange-500 to-red-600",
     },
@@ -69,7 +69,7 @@ export default function RewardsManager() {
         title: "",
         description: "",
         pointsCost: 100,
-        category: "perks",
+        category: "normal_card",
         imageUrl: "",
         stockQuantity: 10,
       });
@@ -94,17 +94,16 @@ export default function RewardsManager() {
   };
 
   const categoryColors = {
-    time_off: "from-blue-500 to-blue-700",
-    perks: "from-purple-500 to-purple-700",
-    swag: "from-pink-500 to-pink-700",
-    experiences: "from-orange-500 to-red-600",
+    special_card: "from-blue-500 to-blue-700",
+    premium_card: "from-pink-500 to-pink-700",
+    normal_card: "from-orange-500 to-red-600",
   };
 
   const categoryIcons = {
-    time_off: Clock,
-    perks: Star,
-    swag: Gift,
-    experiences: Sparkles,
+    special_card: Clock,
+    premium_card: Sparkles,
+    normal_card: Gift,
+    // experiences: Star,
   };
 
   return (
