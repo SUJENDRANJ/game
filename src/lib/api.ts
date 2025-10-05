@@ -60,7 +60,9 @@ export const api = {
         headers: getHeaders(),
         body: JSON.stringify(achievement),
       });
-      return response.json();
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to create achievement');
+      return data;
     },
     award: async (achievementId: string, userId: string) => {
       const response = await fetch(`${API_URL}/api/achievements/award/${achievementId}`, {
@@ -68,14 +70,18 @@ export const api = {
         headers: getHeaders(),
         body: JSON.stringify({ userId }),
       });
-      return response.json();
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to award achievement');
+      return data;
     },
     delete: async (achievementId: string) => {
       const response = await fetch(`${API_URL}/api/achievements/${achievementId}`, {
         method: 'DELETE',
         headers: getHeaders(),
       });
-      return response.json();
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to delete achievement');
+      return data;
     },
   },
   rewards: {
@@ -89,7 +95,9 @@ export const api = {
         headers: getHeaders(),
         body: JSON.stringify(reward),
       });
-      return response.json();
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to create reward');
+      return data;
     },
     purchase: async (rewardId: string) => {
       const response = await fetch(`${API_URL}/api/rewards/purchase/${rewardId}`, {
@@ -105,13 +113,44 @@ export const api = {
         method: 'DELETE',
         headers: getHeaders(),
       });
-      return response.json();
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to delete reward');
+      return data;
     },
   },
   leaderboard: {
     get: async () => {
       const response = await fetch(`${API_URL}/api/leaderboard`);
       return response.json();
+    },
+  },
+  users: {
+    awardPoints: async (userId: string, points: number, description: string) => {
+      const response = await fetch(`${API_URL}/api/users/award-points`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ userId, points, description }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+      return data;
+    },
+    delete: async (userId: string) => {
+      const response = await fetch(`${API_URL}/api/users/${userId}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+      return data;
+    },
+    getAll: async () => {
+      const response = await fetch(`${API_URL}/api/users`, {
+        headers: getHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to fetch users');
+      return data;
     },
   },
 };

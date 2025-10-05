@@ -17,9 +17,13 @@ interface AppContextType {
   createReward: (reward: any) => void;
   deleteAchievement: (achievementId: string) => void;
   deleteReward: (rewardId: string) => void;
+  awardPoints: (userId: string, points: number, description: string) => Promise<void>;
+  deleteEmployee: (userId: string) => Promise<void>;
   showCelebration: boolean;
   celebrationMessage: string;
   triggerCelebration: (message: string) => void;
+  userAchievements: any[];
+  transactions: any[];
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -31,6 +35,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationMessage, setCelebrationMessage] = useState('');
+  const [userAchievements, setUserAchievements] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser');
@@ -161,6 +167,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setRewards(prev => prev.filter(r => r.id !== rewardId));
     });
 
+    socket.on('pointsAwarded', ({ userId, points, description, user }: any) => {
+      setUsers(prev => prev.map(u => u.id === userId ? {
+        ...u,
+        points: user.points,
+        level: user.level,
+      } : u));
+
+      setTransactions(prev => [...prev, {
+        userId,
+        type: points > 0 ? 'award' : 'deduct',
+        points: Math.abs(points),
+        description,
+        timestamp: new Date().toISOString()
+      }]);
+    });
+
+    socket.on('userDeleted', (userId: string) => {
+      setUsers(prev => prev.filter(u => u.id !== userId));
+    });
+
     return () => {
       disconnectSocket();
     };
@@ -274,6 +300,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const awardPoints = async (userId: string, points: number, description: string) => {
+    try {
+      await api.users.awardPoints(userId, points, description);
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to award points');
+    }
+  };
+
+  const deleteEmployee = async (userId: string) => {
+    try {
+      await api.users.delete(userId);
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to delete employee');
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       currentUser,
@@ -289,9 +331,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       createReward,
       deleteAchievement,
       deleteReward,
+      awardPoints,
+      deleteEmployee,
       showCelebration,
       celebrationMessage,
-      triggerCelebration
+      triggerCelebration,
+      userAchievements,
+      transactions
     }}>
       {children}
     </AppContext.Provider>
