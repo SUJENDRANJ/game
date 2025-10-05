@@ -54,6 +54,10 @@ export const api = {
       const response = await fetch(`${API_URL}/api/achievements`);
       return response.json();
     },
+    getUserAchievements: async (userId: string) => {
+      const response = await fetch(`${API_URL}/api/achievements/user/${userId}`);
+      return response.json();
+    },
     create: async (achievement: any) => {
       const response = await fetch(`${API_URL}/api/achievements`, {
         method: 'POST',
@@ -151,6 +155,12 @@ export const api = {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to fetch users');
       return data;
+    },
+  },
+  transactions: {
+    getByUserId: async (userId: string) => {
+      const response = await fetch(`${API_URL}/api/transactions/user/${userId}`);
+      return response.json();
     },
   },
 };

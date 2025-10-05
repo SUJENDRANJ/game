@@ -16,7 +16,7 @@ export default function EmployeeDashboard() {
   );
 
   const recentTransactions = (transactions || [])
-    .filter((t) => t.userId === currentUser.id && t.amount > 0)
+    .filter((t) => t.userId === currentUser.id || t.userId === currentUser.id.toString())
     .slice(0, 5);
 
   const nextLevelPoints = currentUser.level * 100;
@@ -152,10 +152,14 @@ export default function EmployeeDashboard() {
             </p>
           ) : (
             <div className="space-y-3">
-              {recentTransactions.map((transaction) => (
+              {recentTransactions.map((transaction, index) => (
                 <div
-                  key={transaction.id}
-                  className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200"
+                  key={transaction._id || index}
+                  className={`flex items-center justify-between p-4 rounded-xl border ${
+                    transaction.amount >= 0
+                      ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
+                      : 'bg-gradient-to-r from-red-50 to-pink-50 border-red-200'
+                  }`}
                 >
                   <div>
                     <p className="font-semibold text-gray-800">
@@ -165,8 +169,10 @@ export default function EmployeeDashboard() {
                       {new Date(transaction.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <span className="text-xl font-bold text-green-600">
-                    +{transaction.amount}
+                  <span className={`text-xl font-bold ${
+                    transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {transaction.amount >= 0 ? '+' : ''}{transaction.amount}
                   </span>
                 </div>
               ))}

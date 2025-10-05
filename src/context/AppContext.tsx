@@ -82,8 +82,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
           points: u.points,
           totalPointsEarned: u.points,
           level: u.level,
-          streakDays: 0
+          streakDays: u.streakDays || 0
         })));
+
+        if (currentUser?.id) {
+          const [userAchievementsData, userTransactions] = await Promise.all([
+            api.achievements.getUserAchievements(currentUser.id),
+            api.transactions.getByUserId(currentUser.id)
+          ]);
+          setUserAchievements(userAchievementsData);
+          setTransactions(userTransactions);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -117,7 +126,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }]);
     });
 
-    socket.on('achievementAwarded', ({ userId, user }: any) => {
+    socket.on('achievementAwarded', async ({ userId, achievementId, user }: any) => {
       setUsers(prev => prev.map(u => u.id === userId ? {
         ...u,
         points: user.points,
@@ -138,6 +147,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
           level: user.level,
           totalPointsEarned: user.points
         }));
+
+        setUserAchievements(prev => [...prev, { userId, achievementId }]);
+
+        try {
+          const userTransactions = await api.transactions.getByUserId(userId);
+          setTransactions(userTransactions);
+        } catch (error) {
+          console.error('Error fetching transactions:', error);
+        }
       }
     });
 
@@ -167,20 +185,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setRewards(prev => prev.filter(r => r.id !== rewardId));
     });
 
-    socket.on('pointsAwarded', ({ userId, points, description, user }: any) => {
+    socket.on('pointsAwarded', async ({ userId, points, description, user }: any) => {
       setUsers(prev => prev.map(u => u.id === userId ? {
         ...u,
         points: user.points,
         level: user.level,
       } : u));
 
-      setTransactions(prev => [...prev, {
-        userId,
-        type: points > 0 ? 'award' : 'deduct',
-        points: Math.abs(points),
-        description,
-        timestamp: new Date().toISOString()
-      }]);
+      if (currentUser?.id === userId) {
+        try {
+          const userTransactions = await api.transactions.getByUserId(userId);
+          setTransactions(userTransactions);
+        } catch (error) {
+          console.error('Error fetching transactions:', error);
+        }
+      }
     });
 
     socket.on('userDeleted', (userId: string) => {
@@ -203,7 +222,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         points: user.points,
         totalPointsEarned: user.points,
         level: user.level,
-        streakDays: 0
+        streakDays: user.streakDays || 0
       };
       setCurrentUser(mappedUser);
       localStorage.setItem('currentUser', JSON.stringify(mappedUser));
@@ -223,7 +242,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         points: user.points,
         totalPointsEarned: user.points,
         level: user.level,
-        streakDays: 0
+        streakDays: user.streakDays || 0
       };
       setCurrentUser(mappedUser);
       localStorage.setItem('currentUser', JSON.stringify(mappedUser));

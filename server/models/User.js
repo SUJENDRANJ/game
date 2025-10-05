@@ -9,6 +9,8 @@ const UserSchema = new mongoose.Schema({
   isAdmin: { type: Boolean, default: false },
   achievements: [{ type: String }],
   rewardsPurchased: [{ type: String }],
+  streakDays: { type: Number, default: 0 },
+  lastLoginDate: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
 });
 

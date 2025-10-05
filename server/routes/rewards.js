@@ -1,6 +1,7 @@
 import express from "express";
 import Reward from "../models/Reward.js";
 import User from "../models/User.js";
+import Transaction from "../models/Transaction.js";
 import authMiddleware from "../middleware/auth.js";
 
 const router = express.Router();
@@ -67,6 +68,15 @@ router.post("/purchase/:rewardId", authMiddleware, async (req, res) => {
 
     await user.save();
     await reward.save();
+
+    const transaction = new Transaction({
+      userId: user._id,
+      type: "purchase",
+      amount: -reward.cost,
+      description: `Redeemed: ${reward.name}`,
+      relatedId: rewardId,
+    });
+    await transaction.save();
 
     req.app.get("io").emit("rewardPurchased", {
       userId: user._id,

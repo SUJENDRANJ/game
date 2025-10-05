@@ -1,5 +1,6 @@
 import express from "express";
 import User from "../models/User.js";
+import Transaction from "../models/Transaction.js";
 import authMiddleware from "../middleware/auth.js";
 
 const router = express.Router();
@@ -22,6 +23,14 @@ router.post("/award-points", authMiddleware, async (req, res) => {
     user.level = Math.floor(user.points / 100) + 1;
 
     await user.save();
+
+    const transaction = new Transaction({
+      userId: user._id,
+      type: points > 0 ? "award" : "deduct",
+      amount: points,
+      description: description || (points > 0 ? "Points awarded" : "Points deducted"),
+    });
+    await transaction.save();
 
     req.app.get("io").emit("pointsAwarded", {
       userId: user._id,

@@ -1,6 +1,7 @@
 import express from "express";
 import Achievement from "../models/Achievement.js";
 import User from "../models/User.js";
+import Transaction from "../models/Transaction.js";
 import authMiddleware from "../middleware/auth.js";
 
 const router = express.Router();
@@ -10,6 +11,25 @@ router.get("/", async (req, res) => {
   try {
     const achievements = await Achievement.find({ isActive: true });
     res.json(achievements);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get user achievements
+router.get("/user/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userAchievements = user.achievements.map(achievementId => ({
+      userId: user._id.toString(),
+      achievementId
+    }));
+
+    res.json(userAchievements);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
@@ -62,6 +82,15 @@ router.post("/award/:achievementId", authMiddleware, async (req, res) => {
     user.level = Math.floor(user.points / 100) + 1;
 
     await user.save();
+
+    const transaction = new Transaction({
+      userId: user._id,
+      type: "award",
+      amount: achievement.points,
+      description: `Achievement unlocked: ${achievement.title}`,
+      relatedId: achievementId,
+    });
+    await transaction.save();
 
     req.app.get("io").emit("achievementAwarded", {
       userId: user._id,

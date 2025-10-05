@@ -66,6 +66,26 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    const now = new Date();
+    const lastLogin = user.lastLoginDate;
+
+    if (lastLogin) {
+      const lastLoginDay = new Date(lastLogin).setHours(0, 0, 0, 0);
+      const todayStart = new Date(now).setHours(0, 0, 0, 0);
+      const daysDiff = Math.floor((todayStart - lastLoginDay) / (1000 * 60 * 60 * 24));
+
+      if (daysDiff === 1) {
+        user.streakDays += 1;
+      } else if (daysDiff > 1) {
+        user.streakDays = 1;
+      }
+    } else {
+      user.streakDays = 1;
+    }
+
+    user.lastLoginDate = now;
+    await user.save();
+
     const token = jwt.sign(
       { userId: user._id, isAdmin: user.isAdmin },
       JWT_SECRET
@@ -82,6 +102,7 @@ router.post("/login", async (req, res) => {
         isAdmin: user.isAdmin,
         achievements: user.achievements,
         rewardsPurchased: user.rewardsPurchased,
+        streakDays: user.streakDays,
       },
     });
   } catch (error) {

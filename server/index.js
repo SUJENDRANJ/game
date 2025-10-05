@@ -9,6 +9,7 @@ import achievementsRoutes from "./routes/achievements.js";
 import rewardsRoutes from "./routes/rewards.js";
 import leaderboardRoutes from "./routes/leaderboard.js";
 import usersRoutes from "./routes/users.js";
+import transactionsRoutes from "./routes/transactions.js";
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use("/api/achievements", achievementsRoutes);
 app.use("/api/rewards", rewardsRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/transactions", transactionsRoutes);
 
 // Socket.io setup
 io.on("connection", (socket) => {
