@@ -5,7 +5,10 @@ export default function AchievementsPanel() {
   const { currentUser, achievements, userAchievements } = useApp();
 
   const unlockedAchievementIds = (userAchievements || [])
-    .filter((ua) => ua.userId === currentUser?.id)
+    .filter((ua) => {
+      const uaUserId = typeof ua.userId === 'string' ? ua.userId : ua.userId?.toString();
+      return uaUserId === currentUser?.id;
+    })
     .map((ua) => ua.achievementId);
 
   const rarityColors = {

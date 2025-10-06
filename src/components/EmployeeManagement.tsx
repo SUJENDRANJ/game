@@ -91,23 +91,35 @@ export default function EmployeeManagement() {
   const getUserAchievementCount = (userId: string) => {
     return (
       userAchievements &&
-      userAchievements.filter((ua) => ua.userId === userId).length
+      userAchievements.filter((ua) => {
+        const uaUserId = typeof ua.userId === 'string' ? ua.userId : ua.userId.toString();
+        return uaUserId === userId;
+      }).length
     );
   };
 
   const getUserRecentTransactions = (userId: string) => {
-    return transactions.filter((t) => t.userId === userId).slice(0, 5);
+    return transactions.filter((t) => {
+      const tUserId = typeof t.userId === 'string' ? t.userId : t.userId.toString();
+      return tUserId === userId;
+    }).slice(0, 5);
   };
 
   const getUserAchievements = (userId: string) => {
     const userAchIds = (userAchievements || [])
-      .filter((ua) => ua.userId === userId)
+      .filter((ua) => {
+        const uaUserId = typeof ua.userId === 'string' ? ua.userId : ua.userId.toString();
+        return uaUserId === userId;
+      })
       .map((ua) => ua.achievementId);
     return achievements.filter((a) => userAchIds.includes(a.id));
   };
 
   const getUserRedemptionCount = (userId: string) => {
-    return (redemptions || []).filter((r) => r.userId === userId).length;
+    return (redemptions || []).filter((r) => {
+      const rUserId = typeof r.userId === 'string' ? r.userId : r.userId.toString();
+      return rUserId === userId;
+    }).length;
   };
 
   const toggleEmployeeExpand = (userId: string) => {

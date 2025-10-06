@@ -8,7 +8,10 @@ export default function EmployeeDashboard() {
   if (!currentUser) return null;
 
   const unlockedAchievementIds = (userAchievements || [])
-    .filter((ua) => ua.userId === currentUser.id)
+    .filter((ua) => {
+      const uaUserId = typeof ua.userId === 'string' ? ua.userId : ua.userId?.toString();
+      return uaUserId === currentUser.id;
+    })
     .map((ua) => ua.achievementId);
 
   const unlockedAchievements = (achievements || []).filter((a) =>
@@ -16,10 +19,10 @@ export default function EmployeeDashboard() {
   );
 
   const recentTransactions = (transactions || [])
-    .filter(
-      (t) =>
-        t.userId === currentUser.id || t.userId === currentUser.id.toString()
-    )
+    .filter((t) => {
+      const tUserId = typeof t.userId === 'string' ? t.userId : t.userId?.toString();
+      return tUserId === currentUser.id;
+    })
     .slice(0, 5);
 
   const nextLevelPoints = currentUser.level * 100;

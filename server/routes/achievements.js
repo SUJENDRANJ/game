@@ -26,7 +26,7 @@ router.get("/all-users", authMiddleware, async (req, res) => {
       user.achievements.forEach((achievementId) => {
         allUserAchievements.push({
           userId: user._id.toString(),
-          achievementId,
+          achievementId: achievementId.toString ? achievementId.toString() : achievementId,
         });
       });
     });
