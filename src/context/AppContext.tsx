@@ -139,18 +139,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const socket = connectSocket();
 
     socket.on("achievementCreated", (achievement: any) => {
-      setAchievements((prev) => [
-        ...prev,
-        {
-          id: achievement.id,
-          title: achievement.title,
-          description: achievement.description,
-          icon: achievement.icon,
-          pointsReward: achievement.points,
-          category: achievement.category || "milestone",
-          rarity: achievement.rarity || "common",
-        },
-      ]);
+      setAchievements((prev) => {
+        const exists = prev.some((a) => a.id === achievement.id);
+        if (exists) return prev;
+        return [
+          ...prev,
+          {
+            id: achievement.id,
+            title: achievement.title,
+            description: achievement.description,
+            icon: achievement.icon,
+            pointsReward: achievement.points,
+            category: achievement.category || "milestone",
+            rarity: achievement.rarity || "common",
+          },
+        ];
+      });
     });
 
     socket.on("rewardCreated", (reward: any) => {
@@ -184,6 +188,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
           )
         );
 
+        setUserAchievements((prev) => {
+          const exists = prev.some(
+            (ua) => ua.userId === userId && ua.achievementId === achievementId
+          );
+          if (exists) return prev;
+          return [...prev, { userId, achievementId }];
+        });
+
         if (currentUser?.id === userId) {
           setCurrentUser((prev) =>
             prev
@@ -205,11 +217,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
             })
           );
 
-          setUserAchievements((prev) => [...prev, { userId, achievementId }]);
-
           try {
             const userTransactions = await api.transactions.getByUserId(userId);
             setTransactions(userTransactions);
+          } catch (error) {
+            console.error("Error fetching transactions:", error);
+          }
+        } else if (currentUser?.role === "admin") {
+          try {
+            const allTransactions = await api.transactions.getAll();
+            setTransactions(allTransactions);
           } catch (error) {
             console.error("Error fetching transactions:", error);
           }
@@ -249,6 +266,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         try {
           const userTransactions = await api.transactions.getByUserId(userId);
           setTransactions(userTransactions);
+        } catch (error) {
+          console.error("Error fetching transactions:", error);
+        }
+      } else if (currentUser?.role === "admin") {
+        try {
+          const allTransactions = await api.transactions.getAll();
+          setTransactions(allTransactions);
         } catch (error) {
           console.error("Error fetching transactions:", error);
         }
@@ -293,9 +317,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
         );
 
         if (currentUser?.id === userId) {
+          setCurrentUser((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  points: user.points,
+                  level: user.level,
+                  totalPointsEarned: user.totalPointsEarned || prev.totalPointsEarned,
+                }
+              : null
+          );
+          localStorage.setItem(
+            "currentUser",
+            JSON.stringify({
+              ...currentUser,
+              points: user.points,
+              level: user.level,
+              totalPointsEarned: user.totalPointsEarned || currentUser.totalPointsEarned,
+            })
+          );
           try {
             const userTransactions = await api.transactions.getByUserId(userId);
             setTransactions(userTransactions);
+          } catch (error) {
+            console.error("Error fetching transactions:", error);
+          }
+        } else if (currentUser?.role === "admin") {
+          try {
+            const allTransactions = await api.transactions.getAll();
+            setTransactions(allTransactions);
           } catch (error) {
             console.error("Error fetching transactions:", error);
           }
@@ -397,18 +447,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     rarity?: string;
   }) => {
     const response = await api.achievements.create(achievementData);
-    setAchievements((prev) => [
-      ...prev,
-      {
-        id: response.id,
-        title: response.title,
-        description: response.description,
-        icon: response.icon,
-        pointsReward: response.points,
-        category: response.category || "milestone",
-        rarity: response.rarity || "common",
-      },
-    ]);
+    setAchievements((prev) => {
+      const exists = prev.some((a) => a.id === response.id);
+      if (exists) return prev;
+      return [
+        ...prev,
+        {
+          id: response.id,
+          title: response.title,
+          description: response.description,
+          icon: response.icon,
+          pointsReward: response.points,
+          category: response.category || "milestone",
+          rarity: response.rarity || "common",
+        },
+      ];
+    });
   };
 
   const createReward = async (reward: any) => {
