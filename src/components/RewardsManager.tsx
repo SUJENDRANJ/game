@@ -275,7 +275,7 @@ export default function RewardsManager() {
               </div>
               <div className="p-4">
                 <h3 className="font-bold text-gray-800 mb-1">{reward.title}</h3>
-                <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                <p className="text-sm text-gray-600  mb-3">
                   {reward.description}
                 </p>
 
